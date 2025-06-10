@@ -1,6 +1,6 @@
 {
   "$schema": "https://mintlify.com/schema.json",
-  "name": "Complyance Modes Manager API",
+  "name": "Complyance",
   "logo": {
     "dark": "/logo/dark.svg",
     "light": "/logo/light.svg"
