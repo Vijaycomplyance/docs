@@ -42,7 +42,7 @@
   "anchors": [
     {
       "name": "Developer Portal",
-      "icon": "book-open-cover",
+      "icon": "book",
       "url": "https://developer.complyance.io"
     },
     {
