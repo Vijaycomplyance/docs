@@ -105,6 +105,6 @@
   },
   "security": {
     "allowEmbedding": true,
-    "frameSources": ["'self'", "*.complyance.io", "*.mintlify.app", "localhost:*"]
+    "frameSources": ["*"]
   }
 } 
