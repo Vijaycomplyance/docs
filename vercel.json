@@ -20,7 +20,7 @@
         },
         {
           "key": "Content-Security-Policy",
-          "value": "frame-ancestors 'self' *.complyance.io *.mintlify.app localhost:*"
+          "value": "frame-ancestors *"
         }
       ]
     }
