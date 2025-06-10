@@ -102,5 +102,9 @@
     "x": "https://x.com/complyance",
     "github": "https://github.com/complyance",
     "linkedin": "https://www.linkedin.com/company/complyance"
+  },
+  "security": {
+    "allowEmbedding": true,
+    "frameSources": ["'self'", "*.complyance.io", "*.mintlify.app", "localhost:*"]
   }
 } 
