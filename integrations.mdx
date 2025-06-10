@@ -1,0 +1,327 @@
+---
+title: 'Understanding Integrations'
+description: 'Learn how integrations work as reusable templates for tax compliance automation'
+---
+
+## What are Integrations?
+
+An **Integration** in the Complyance platform is a reusable template that defines how your business data maps to tax compliance requirements for specific countries and document types. Think of it as a blueprint that learns your data structure once and then applies that knowledge to process multiple documents consistently.
+
+<Info>
+Integrations are the core building blocks that enable automated tax compliance. Once configured, they can process thousands of documents with the same mapping rules.
+</Info>
+
+## How Integrations Work
+
+<Steps>
+  <Step title="Data Analysis">
+    When you create an integration, our AI analyzes your data structure to understand field relationships and data patterns
+  </Step>
+  <Step title="Field Mapping">
+    The system automatically maps your fields to compliance requirements (37 GETS fields + country-specific fields)
+  </Step>
+  <Step title="Template Creation">
+    A reusable template is created that can process future documents with the same structure
+  </Step>
+  <Step title="Document Processing">
+    Use the integration to convert your business data into compliant documents for tax authorities
+  </Step>
+</Steps>
+
+## Integration Lifecycle
+
+```mermaid
+graph LR
+    A[Create Integration] --> B[Set Country & Document Type]
+    B --> C[Upload Sample Data]
+    C --> D[AI Field Mapping]
+    D --> E[Review & Adjust]
+    E --> F[Validate & Activate]
+    F --> G[Process Documents]
+    G --> H[Submit to Tax Authority]
+```
+
+## Key Features
+
+### 🤖 **AI-Powered Mapping**
+- Automatically detects and maps fields from your data
+- Learns from your business document structure
+- Handles complex nested data relationships
+- 95%+ accuracy in field detection
+
+### 🌍 **Multi-Country Support**
+- Saudi Arabia (ZATCA Phase 2)
+- Malaysia (e-Invoice requirements)
+- Expanding to 50+ countries
+- Country-specific validation rules
+
+### 🔄 **Reusable Templates**
+- One-time setup for unlimited document processing
+- Consistent mapping across all documents
+- Version control and change tracking
+- Template sharing across teams
+
+### ⚡ **Real-Time Processing**
+- Instant field mapping and validation
+- Live preview of compliant documents
+- Real-time error detection and suggestions
+- Performance optimized for high-volume processing
+
+## Integration Types
+
+<Tabs>
+  <Tab title="ERP Integration">
+    **Purpose**: Connect enterprise systems like SAP, Oracle, Microsoft Dynamics
+    
+    **Features**:
+    - Complex data structure handling
+    - Multiple document types support
+    - Batch processing capabilities
+    - Enterprise-grade security
+    
+    **Best For**: Large organizations with established ERP systems
+  </Tab>
+  
+  <Tab title="API Integration">
+    **Purpose**: Direct API integration for custom applications
+    
+    **Features**:
+    - RESTful API endpoints
+    - Real-time data processing
+    - Flexible data formats
+    - Developer-friendly documentation
+    
+    **Best For**: Software companies and custom applications
+  </Tab>
+  
+  <Tab title="SDK Integration">
+    **Purpose**: Java SDK for enterprise applications
+    
+    **Features**:
+    - Native Java integration
+    - Type-safe operations
+    - Automatic error handling
+    - Enterprise patterns support
+    
+    **Best For**: Java-based enterprise applications
+  </Tab>
+</Tabs>
+
+## Field Mapping Architecture
+
+### GETS Core Fields (37 fields)
+International e-invoicing compliance covering:
+
+<AccordionGroup>
+  <Accordion title="Header Fields (5 fields)">
+    - Document ID and issue date
+    - Currency and exchange rates
+    - Document type classification
+    - Invoice reference numbers
+    - Due dates and payment terms
+  </Accordion>
+  
+  <Accordion title="Party Information (18 fields)">
+    - Seller company details and tax registration
+    - Buyer information and tax numbers
+    - Address information for both parties
+    - Contact details and industry codes
+    - Legal entity registration numbers
+  </Accordion>
+  
+  <Accordion title="Line Items (8 fields)">
+    - Product/service descriptions
+    - Quantities and unit measurements
+    - Pricing and discount information
+    - Tax categories and rates
+    - Item classification codes
+  </Accordion>
+  
+  <Accordion title="Financial Totals (6 fields)">
+    - Line extension amounts
+    - Tax-exclusive and tax-inclusive totals
+    - Total tax amounts by category
+    - Discount and charge summaries
+    - Final payable amounts
+  </Accordion>
+</AccordionGroup>
+
+### Country-Specific Fields
+
+<CardGroup cols={2}>
+  <Card title="Saudi Arabia (5 fields)" icon="flag">
+    **ZATCA Compliance Flags**:
+    - Export transaction indicator
+    - Nominal transaction flag (B2C < 1000 SAR)
+    - Self-billed invoice indicator
+    - Summary invoice flag
+    - Third-party transaction marker
+  </Card>
+  <Card title="Malaysia" icon="flag">
+    **e-Invoice Requirements**:
+    - Currently handled through GETS core fields
+    - Additional country-specific fields in development
+    - Full compliance with MyInvois requirements
+  </Card>
+</CardGroup>
+
+## Best Practices
+
+### Design Patterns
+
+<Tabs>
+  <Tab title="Single Country">
+    **When to use**: Operating in one country with consistent requirements
+    
+    ```javascript
+    // Create country-specific integration
+    const integration = await createIntegration({
+      country: 'SA',
+      documentType: 'tax_invoice',
+      template: 'saudi-zatca-standard'
+    });
+    ```
+  </Tab>
+  
+  <Tab title="Multi-Country">
+    **When to use**: Global operations with different compliance needs
+    
+    ```javascript
+    // Create multi-country integration
+    const integration = await createIntegration({
+      countries: ['SA', 'MY'],
+      documentTypes: ['tax_invoice', 'credit_note'],
+      template: 'global-compliance'
+    });
+    ```
+  </Tab>
+  
+  <Tab title="Document-Specific">
+    **When to use**: Different document types require different mappings
+    
+    ```javascript
+    // Create document-type specific integrations
+    const invoiceIntegration = await createIntegration({
+      country: 'SA',
+      documentType: 'tax_invoice'
+    });
+    
+    const creditNoteIntegration = await createIntegration({
+      country: 'SA', 
+      documentType: 'credit_note'
+    });
+    ```
+  </Tab>
+</Tabs>
+
+### Performance Optimization
+
+- **Template Reuse**: Create templates for common document structures
+- **Batch Processing**: Group similar documents for efficient processing
+- **Caching Strategy**: Cache frequently used mappings and validations
+- **Error Handling**: Implement robust retry logic for network failures
+
+## Common Use Cases
+
+<AccordionGroup>
+  <Accordion title="E-commerce Platform">
+    **Scenario**: Online marketplace generating invoices for multiple countries
+    
+    **Solution**: Multi-country integration with dynamic country detection based on buyer location
+    
+    **Benefits**: Automated compliance for all transactions, reduced manual work, faster settlement
+  </Accordion>
+
+  <Accordion title="Manufacturing Company">
+    **Scenario**: B2B manufacturer with SAP ERP system selling globally
+    
+    **Solution**: ERP integration with batch processing for high-volume transactions
+    
+    **Benefits**: Seamless ERP integration, bulk document processing, automated tax authority submission
+  </Accordion>
+
+  <Accordion title="Software Company">
+    **Scenario**: SaaS provider with subscription billing across multiple countries
+    
+    **Solution**: API integration with recurring document generation
+    
+    **Benefits**: Automated recurring compliance, real-time document generation, developer-friendly integration
+  </Accordion>
+
+  <Accordion title="Professional Services">
+    **Scenario**: Consulting firm with project-based billing and expense tracking
+    
+    **Solution**: Flexible integration with custom field mapping for services and expenses
+    
+    **Benefits**: Service-specific compliance, expense tracking, client-specific document formats
+  </Accordion>
+</AccordionGroup>
+
+## Getting Started
+
+Ready to create your first integration? Follow these steps:
+
+<CardGroup cols={2}>
+  <Card
+    title="Quick Start Guide"
+    icon="rocket"
+    href="/quickstart"
+  >
+    Get up and running with your first integration in 5 minutes
+  </Card>
+  <Card
+    title="Create Integration API"
+    icon="plus"
+    href="/api-reference/integrations/create"
+  >
+    Technical documentation for creating integrations via API
+  </Card>
+  <Card
+    title="Java SDK Guide"
+    icon="coffee"
+    href="/sdk/installation"
+  >
+    Enterprise integration using our Java SDK
+  </Card>
+  <Card
+    title="Field Mapping Guide"
+    icon="brain"
+    href="/concepts/field-mapping"
+  >
+    Deep dive into how field mapping works
+  </Card>
+</CardGroup>
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Field Mapping Issues">
+    **Problem**: AI cannot map certain fields automatically
+    
+    **Solutions**:
+    - Ensure field names are descriptive and consistent
+    - Provide sample data with all required fields populated
+    - Use manual mapping for complex or custom fields
+    - Check data format compatibility (dates, numbers, etc.)
+  </Accordion>
+
+  <Accordion title="Validation Failures">
+    **Problem**: Integration validation fails during testing
+    
+    **Solutions**:
+    - Verify all mandatory fields are mapped (42 for Saudi Arabia)
+    - Check data format compliance (VAT numbers, dates, amounts)
+    - Review country-specific requirements
+    - Test with various document samples
+  </Accordion>
+
+  <Accordion title="Performance Issues">
+    **Problem**: Slow processing or timeouts
+    
+    **Solutions**:
+    - Optimize payload size (recommended < 10MB)
+    - Use batch processing for multiple documents
+    - Implement proper error handling and retries
+    - Consider caching for frequently used templates
+  </Accordion>
+</AccordionGroup> 

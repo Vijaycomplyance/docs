@@ -1,0 +1,106 @@
+{
+  "$schema": "https://mintlify.com/schema.json",
+  "name": "Complyance Modes Manager API",
+  "logo": {
+    "dark": "/logo/dark.svg",
+    "light": "/logo/light.svg"
+  },
+  "favicon": "/favicon.svg",
+  "colors": {
+    "primary": "#0D9373",
+    "light": "#07C983",
+    "dark": "#0D9373",
+    "anchors": {
+      "from": "#0D9373",
+      "to": "#07C983"
+    }
+  },
+  "modeToggle": {
+    "default": "light",
+    "isHidden": true
+  },
+  "topbarLinks": [
+    {
+      "name": "Support",
+      "url": "mailto:support@complyance.io"
+    }
+  ],
+  "topbarCtaButton": {
+    "name": "Dashboard",
+    "url": "https://dashboard.complyance.io"
+  },
+  "tabs": [
+    {
+      "name": "API Reference",
+      "url": "api-reference"
+    },
+    {
+      "name": "SDK Guide",
+      "url": "sdk"
+    }
+  ],
+  "anchors": [
+    {
+      "name": "Developer Portal",
+      "icon": "book-open-cover",
+      "url": "https://developer.complyance.io"
+    },
+    {
+      "name": "Community",
+      "icon": "slack",
+      "url": "https://slack.complyance.io"
+    }
+  ],
+  "navigation": [
+    {
+      "group": "Get Started",
+      "pages": [
+        "introduction",
+        "quickstart",
+        "authentication"
+      ]
+    },
+    {
+      "group": "Core Concepts",
+      "pages": [
+        "concepts/integrations",
+        "concepts/field-mapping",
+        "concepts/document-types"
+      ]
+    },
+    {
+      "group": "Integration Management",
+      "pages": [
+        "api-reference/integrations/create",
+        "api-reference/integrations/update-progress",
+        "api-reference/integrations/get-template-data",
+        "api-reference/integrations/get-all",
+        "api-reference/integrations/validate"
+      ]
+    },
+    {
+      "group": "SDK Integration",
+      "pages": [
+        "api-reference/sdk/unify-api"
+      ]
+    },
+    {
+      "group": "Complete Field Reference",
+      "pages": [
+        "api-reference/fields/invoice-fields"
+      ]
+    },
+    {
+      "group": "Java SDK",
+      "pages": [
+        "sdk/installation",
+        "sdk/unify-sdk-guide"
+      ]
+    }
+  ],
+  "footerSocials": {
+    "x": "https://x.com/complyance",
+    "github": "https://github.com/complyance",
+    "linkedin": "https://www.linkedin.com/company/complyance"
+  }
+} 

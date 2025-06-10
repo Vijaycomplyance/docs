@@ -1,0 +1,158 @@
+---
+title: 'Invoice Fields Reference'
+description: 'Simple reference for all invoice fields you can use in your integration'
+---
+
+## Invoice Fields
+
+This reference shows all the fields you can include when sending invoice data to our API. Each field has a clear description and example to help you understand what information to provide.
+
+### Document Information
+
+| Field Name | Type | Required | Description | Example |
+|------------|------|----------|-------------|---------|
+| Document Id | string | ✅ | The unique identifier for your invoice. This should be unique for each invoice you send. | `INV-2024-001234` |
+| Document Type | string | ✅ | The type of document you're sending. Use the appropriate code for your document type. | `tax_invoice` |
+| Issue Date | string | ✅ | The date when the invoice was issued. Use YYYY-MM-DD format. | `2024-01-15` |
+| Due Date | string | ⚪ | The date when payment is due. Use YYYY-MM-DD format. | `2024-02-15` |
+| Currency | string | ✅ | The currency code for all amounts in the invoice. Use 3-letter ISO currency codes. | `USD`, `EUR`, `SAR` |
+
+### Seller Information
+
+| Field Name | Type | Required | Description | Example |
+|------------|------|----------|-------------|---------|
+| Seller Name | string | ✅ | The legal name of your business or organization issuing the invoice. | `Acme Corporation Ltd` |
+| Seller VAT Number | string | ✅ | Your business VAT registration number. Format varies by country. | `GB123456789` (UK), `311111111101114` (Saudi) |
+| Seller Address | object | ✅ | Complete address information for your business. | `{"street": "123 Business St", "city": "London", "postal_code": "SW1A 1AA", "country": "GB"}` |
+| Seller Email | string | ⚪ | Your business contact email address. | `billing@acme.com` |
+| Seller Phone | string | ⚪ | Your business contact phone number. | `+44 20 7946 0958` |
+
+### Buyer Information
+
+| Field Name | Type | Required | Description | Example |
+|------------|------|----------|-------------|---------|
+| Buyer Name | string | ✅ | The name of the customer you're invoicing. | `Customer Company Inc` |
+| Buyer VAT Number | string | ⚪ | The customer's VAT registration number, if they have one. | `GB987654321` |
+| Buyer Address | object | ✅ | The customer's billing address information. | `{"street": "456 Customer Ave", "city": "Manchester", "postal_code": "M1 1AA", "country": "GB"}` |
+| Buyer Email | string | ⚪ | The customer's email address for invoice delivery. | `accounts@customer.com` |
+| Buyer Phone | string | ⚪ | The customer's contact phone number. | `+44 161 123 4567` |
+
+### Line Items
+
+| Field Name | Type | Required | Description | Example |
+|------------|------|----------|-------------|---------|
+| Item Description | string | ✅ | Clear description of the product or service being sold. | `Professional Consulting Services` |
+| Quantity | number | ✅ | How many units of this item are being sold. | `5` |
+| Unit Price | number | ✅ | The price per unit before tax. | `299.99` |
+| Tax Rate | number | ✅ | The tax percentage applied to this item. | `20` (for 20% VAT) |
+| Line Total | number | ✅ | Total amount for this line (quantity × unit price). | `1499.95` |
+| Item Code | string | ⚪ | Your internal product or service code. | `CONS-001` |
+| Unit of Measure | string | ⚪ | The unit type (pieces, hours, kg, etc.). | `hours`, `pieces`, `kg` |
+
+### Payment Information
+
+| Field Name | Type | Required | Description | Example |
+|------------|------|----------|-------------|---------|
+| Payment Terms | string | ⚪ | Description of when and how payment should be made. | `Net 30 days` |
+| Payment Method | string | ⚪ | How the customer can pay the invoice. | `Bank Transfer`, `Credit Card` |
+| Bank Account Name | string | ⚪ | The name on your bank account for payments. | `Acme Corporation Ltd` |
+| Bank Account Number | string | ⚪ | Your bank account number for payments. | `12345678` |
+| Sort Code | string | ⚪ | Bank sort code (UK) or routing number. | `12-34-56` |
+| IBAN | string | ⚪ | International bank account number. | `GB29 NWBK 6016 1331 9268 19` |
+
+### Totals
+
+| Field Name | Type | Required | Description | Example |
+|------------|------|----------|-------------|---------|
+| Subtotal | number | ✅ | Total amount before tax is added. | `1000.00` |
+| Tax Amount | number | ✅ | Total tax amount for the entire invoice. | `200.00` |
+| Total Amount | number | ✅ | Final amount the customer needs to pay including tax. | `1200.00` |
+| Discount Amount | number | ⚪ | Any discount applied to the invoice. | `50.00` |
+| Shipping Amount | number | ⚪ | Shipping or delivery charges. | `25.00` |
+
+### Additional Information
+
+| Field Name | Type | Required | Description | Example |
+|------------|------|----------|-------------|---------|
+| Notes | string | ⚪ | Any additional information or terms you want to include. | `Thank you for your business. Payment due within 30 days.` |
+| Reference Number | string | ⚪ | Your internal reference or the customer's purchase order number. | `PO-2024-5678` |
+| Invoice Template | string | ⚪ | The template style to use for the invoice. | `standard`, `modern`, `professional` |
+
+## Complete Example
+
+Here's what a complete invoice looks like:
+
+```json
+{
+  "document_id": "INV-2024-001234",
+  "document_type": "tax_invoice",
+  "issue_date": "2024-01-15",
+  "due_date": "2024-02-15",
+  "currency": "USD",
+  "seller": {
+    "name": "Acme Corporation Ltd",
+    "vat_number": "GB123456789",
+    "address": {
+      "street": "123 Business Street",
+      "city": "London",
+      "postal_code": "SW1A 1AA",
+      "country": "GB"
+    },
+    "email": "billing@acme.com"
+  },
+  "buyer": {
+    "name": "Customer Company Inc",
+    "vat_number": "GB987654321",
+    "address": {
+      "street": "456 Customer Avenue",
+      "city": "Manchester",
+      "postal_code": "M1 1AA",
+      "country": "GB"
+    }
+  },
+  "line_items": [
+    {
+      "description": "Professional Consulting Services",
+      "quantity": 1,
+      "unit_price": 1000.00,
+      "tax_rate": 20,
+      "line_total": 1000.00
+    }
+  ],
+  "subtotal": 1000.00,
+  "tax_amount": 200.00,
+  "total_amount": 1200.00,
+  "payment_terms": "Net 30 days",
+  "notes": "Thank you for your business!"
+}
+```
+
+## Country-Specific Requirements
+
+### Saudi Arabia (ZATCA)
+- VAT Number must be 15 digits
+- QR Code will be automatically generated
+- Arabic translations supported for business names
+- Maximum invoice amount: SAR 1,000,000
+
+### Malaysia (MyInvois)  
+- GST Number required for businesses
+- Ringgit (MYR) currency for domestic transactions
+- Automatic submission to LHDN portal
+- Real-time validation available
+
+### United Kingdom
+- VAT Number format: GB followed by 9 digits
+- 20% standard VAT rate
+- HMRC Making Tax Digital compliance
+- Reverse charge mechanism supported
+
+## Need Help?
+
+If you need assistance with any field or have questions about formatting your data, please contact our support team:
+
+📧 **Email**: support@complyance.io  
+📖 **Documentation**: https://docs.complyance.io  
+🎛️ **Dashboard**: https://dashboard.complyance.io
+
+Our integration specialists can help you map your existing data to these fields and ensure compliance with local tax requirements. 

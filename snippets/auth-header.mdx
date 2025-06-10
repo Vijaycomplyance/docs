@@ -1,0 +1,25 @@
+All API requests require authentication using a JWT token in the Authorization header:
+
+```bash
+Authorization: Bearer YOUR_JWT_TOKEN
+```
+
+<Warning>
+Replace `YOUR_JWT_TOKEN` with your actual JWT token. Never commit tokens to version control or share them publicly.
+</Warning>
+
+**Token Management:**
+- Tokens are environment-specific (sandbox vs production)
+- Tokens may expire and need to be refreshed
+- Use secure storage for token management in production
+
+**Getting Your Token:**
+1. **Sandbox**: Use demo tokens provided in the [Authentication Guide](/authentication)
+2. **Production**: Contact your account manager or use the token provisioning API
+
+**Example Usage:**
+```bash
+curl -X GET 'https://api.complyance.io/modes-manager/integrations' \
+  -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...' \
+  -H 'Content-Type: application/json'
+``` 

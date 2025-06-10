@@ -1,0 +1,614 @@
+---
+title: "Unify API (SDK)"
+api: "POST https://api.complyance.io/modes-manager/unify"
+description: "Unified endpoint for Java SDK integration with dual mapping support"
+---
+
+## Overview
+
+The Unify API is a powerful, all-in-one endpoint designed specifically for SDK integration. It handles the complete workflow from data ingestion to compliance validation, including automatic AI field mapping for both GETS core compliance and country-specific requirements.
+
+<Info>
+This endpoint is optimized for Java SDK usage and processes your data through the entire compliance pipeline in a single request, making it ideal for enterprise ERP integrations.
+</Info>
+
+## Key Features
+
+- **🤖 AI-Powered Mapping**: Automatically maps your data to GETS core fields + country-specific fields
+- **🌍 Multi-Country Support**: Handles different compliance requirements per country
+- **⚡ Single Request Processing**: Complete pipeline from ingestion to validation
+- **🔄 Dual Mapping**: Supports both international and local compliance requirements
+- **📊 Real-time Analysis**: Provides coverage analysis and mapping statistics
+
+## Authentication
+
+<ParamField header="Authorization" type="string" required>
+  Bearer token for authentication. Format: `Bearer YOUR_JWT_TOKEN`
+</ParamField>
+
+## Request Parameters
+
+<ParamField body="source" type="object" required>
+  Information about the data source system
+  
+  <Expandable title="source properties">
+    <ParamField body="type" type="string" required>
+      Source type: `FIRST_PARTY`, `THIRD_PARTY`, or `INTEGRATION`
+    </ParamField>
+    <ParamField body="id" type="string" required>
+      Unique identifier for your source system
+    </ParamField>
+    <ParamField body="name" type="string" required>
+      Human-readable name of your source system
+    </ParamField>
+    <ParamField body="version" type="string" required>
+      Version of your source system
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField body="documentType" type="string" required>
+  Type of document being processed: `TAX_INVOICE`, `CREDIT_NOTE`, `DEBIT_NOTE`
+</ParamField>
+
+<ParamField body="country" type="string" required>
+  Country code for compliance requirements (e.g., `SA` for Saudi Arabia, `MY` for Malaysia)
+</ParamField>
+
+<ParamField body="operation" type="string" required>
+  Operation type: `SINGLE` for individual documents, `BATCH` for multiple documents
+</ParamField>
+
+<ParamField body="mode" type="string" required>
+  Processing mode: `DOCUMENTS` for document generation, `MAPPING` for field mapping only
+</ParamField>
+
+<ParamField body="purpose" type="string" required>
+  Purpose of the request: `MAPPING` for template creation, `VALIDATION` for compliance checking
+</ParamField>
+
+<ParamField body="payload" type="object" required>
+  Your invoice/document data in any structure. The AI will analyze and map it automatically.
+</ParamField>
+
+<ParamField body="env" type="string" optional>
+  Environment: `sandbox` or `production` (defaults to `sandbox`)
+</ParamField>
+
+<ParamField body="requestId" type="string" optional>
+  Unique identifier for tracking this request
+</ParamField>
+
+## Java SDK Usage
+
+<CodeGroup>
+
+```java Basic Usage
+// Configure SDK
+Source source = new Source(
+    SourceType.FIRST_PARTY, 
+    "erp-001", 
+    "Demo ERP System", 
+    "1.0"
+);
+
+SDKConfig config = new SDKConfig(
+    "ak_your_api_key_here",
+    Environment.SANDBOX,
+    Arrays.asList(source)
+);
+
+GETSUnifySDK.configure(config);
+
+// Prepare your invoice data
+Map<String, Object> payload = new HashMap<>();
+// ... populate with your invoice data
+
+// Process with Unify API
+UnifyResponse response = GETSUnifySDK.pushToUnify(
+    "erp-001",                    // Source ID
+    DocumentType.TAX_INVOICE,     // Document type
+    "SA",                         // Country
+    Operation.SINGLE,             // Operation
+    Mode.DOCUMENTS,               // Mode
+    Purpose.MAPPING,              // Purpose
+    payload                       // Your data
+);
+
+System.out.println("Status: " + response.getStatus());
+System.out.println("Message: " + response.getMessage());
+```
+
+```java Complete Example
+public class InvoiceProcessor {
+    private final GETSUnifySDK sdk;
+    
+    public InvoiceProcessor(String apiKey) {
+        Source source = new Source(
+            SourceType.FIRST_PARTY,
+            "company-erp-001",
+            "Company ERP System",
+            "2.1"
+        );
+        
+        SDKConfig config = new SDKConfig(
+            apiKey,
+            Environment.SANDBOX,
+            Arrays.asList(source)
+        );
+        
+        GETSUnifySDK.configure(config);
+    }
+    
+    public UnifyResponse processInvoice(Invoice invoice) {
+        try {
+            Map<String, Object> payload = convertInvoiceToPayload(invoice);
+            
+            UnifyResponse response = GETSUnifySDK.pushToUnify(
+                "company-erp-001",
+                DocumentType.TAX_INVOICE,
+                invoice.getCountryCode(),
+                Operation.SINGLE,
+                Mode.DOCUMENTS,
+                Purpose.MAPPING,
+                payload
+            );
+            
+            if ("success".equals(response.getStatus())) {
+                // Handle successful processing
+                processSuccessfulResponse(response);
+            } else {
+                // Handle errors
+                handleErrorResponse(response);
+            }
+            
+            return response;
+            
+        } catch (SDKException e) {
+            logger.error("SDK Error: " + e.getMessage(), e);
+            throw new ProcessingException("Failed to process invoice", e);
+        }
+    }
+    
+    private Map<String, Object> convertInvoiceToPayload(Invoice invoice) {
+        // Convert your Invoice object to the payload format
+        Map<String, Object> payload = new HashMap<>();
+        
+        // Invoice header
+        Map<String, Object> invoiceData = new HashMap<>();
+        invoiceData.put("invoice_number", invoice.getNumber());
+        invoiceData.put("invoice_date", invoice.getDate().toString());
+        invoiceData.put("currency_code", invoice.getCurrency());
+        invoiceData.put("total_amount", invoice.getTotalAmount());
+        payload.put("invoice_data", invoiceData);
+        
+        // Seller information
+        Map<String, Object> sellerInfo = new HashMap<>();
+        sellerInfo.put("company_name", invoice.getSellerName());
+        sellerInfo.put("vat_registration", invoice.getSellerVAT());
+        sellerInfo.put("city_name", invoice.getSellerCity());
+        payload.put("seller_info", sellerInfo);
+        
+        // Add more fields as needed...
+        
+        return payload;
+    }
+}
+```
+
+```java Error Handling
+public void handleSDKResponse(UnifyResponse response) {
+    switch (response.getStatus()) {
+        case "success":
+            logger.info("Processing successful: " + response.getMessage());
+            
+            // Extract data for further processing
+            if (response.getData() != null) {
+                Map<String, Object> data = response.getData();
+                
+                // Check integration results
+                if (data.containsKey("integration")) {
+                    Map<String, Object> integration = (Map<String, Object>) data.get("integration");
+                    String integrationId = (String) integration.get("integrationId");
+                    logger.info("Integration ID: " + integrationId);
+                }
+                
+                // Check mapping results
+                if (data.containsKey("mappingResults")) {
+                    Map<String, Object> mappingResults = (Map<String, Object>) data.get("mappingResults");
+                    logger.info("Mapping Results: " + mappingResults);
+                }
+            }
+            break;
+            
+        case "error":
+            logger.error("Processing failed: " + response.getMessage());
+            
+            // Handle specific error types
+            if (response.getError() != null) {
+                String errorCode = response.getError().getCode();
+                switch (errorCode) {
+                    case "VALIDATION_ERROR":
+                        // Handle validation errors
+                        logger.error("Data validation failed: " + response.getError().getMessage());
+                        break;
+                    case "MAPPING_ERROR":
+                        // Handle mapping errors
+                        logger.error("Field mapping failed: " + response.getError().getMessage());
+                        break;
+                    case "AUTHENTICATION_ERROR":
+                        // Handle auth errors
+                        logger.error("Authentication failed: " + response.getError().getMessage());
+                        break;
+                    default:
+                        logger.error("Unknown error: " + response.getError().getMessage());
+                }
+            }
+            break;
+            
+        default:
+            logger.warn("Unexpected response status: " + response.getStatus());
+    }
+}
+```
+
+</CodeGroup>
+
+## cURL Example
+
+For direct API integration without the SDK:
+
+<CodeGroup>
+
+```bash Saudi Arabia Invoice
+curl -X POST 'https://api.complyance.io/modes-manager/unify' \
+  -H 'Authorization: Bearer YOUR_JWT_TOKEN' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "source": {
+      "type": "FIRST_PARTY",
+      "id": "advanced-tech-sa",
+      "name": "Advanced Tech Solutions",
+      "version": "1.0"
+    },
+    "documentType": "TAX_INVOICE",
+    "country": "SA",
+    "operation": "SINGLE",
+    "mode": "DOCUMENTS",
+    "purpose": "MAPPING",
+    "payload": {
+      "invoice_data": {
+        "invoice_number": "INV-2024-001234",
+        "invoice_date": "2024-01-15",
+        "currency_code": "SAR",
+        "total_amount": 23000.00,
+        "tax_amount": 3000.00
+      },
+      "seller_info": {
+        "company_name": "Advanced Tech Solutions LLC",
+        "vat_registration": "310123456700003",
+        "city_name": "Riyadh",
+        "country_code": "SA"
+      },
+      "buyer_info": {
+        "buyer_name": "Global Manufacturing Co.",
+        "buyer_vat": "310987654300003",
+        "buyer_city": "Dammam"
+      },
+      "saudi_compliance": {
+        "export_transaction": "true",
+        "nominal_transaction": "false",
+        "self_billed_invoice": "false",
+        "summary_invoice": "true",
+        "third_party_transaction": "true"
+      }
+    },
+    "env": "sandbox",
+    "requestId": "req_comprehensive_test"
+  }'
+```
+
+```bash Malaysia Invoice
+curl -X POST 'https://api.complyance.io/modes-manager/unify' \
+  -H 'Authorization: Bearer YOUR_JWT_TOKEN' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "source": {
+      "type": "FIRST_PARTY",
+      "id": "company-erp-my",
+      "name": "Company ERP Malaysia",
+      "version": "1.0"
+    },
+    "documentType": "TAX_INVOICE",
+    "country": "MY",
+    "operation": "SINGLE",
+    "mode": "DOCUMENTS",
+    "purpose": "MAPPING",
+    "payload": {
+      "invoice_data": {
+        "invoice_number": "INV-MY-2024-001",
+        "invoice_date": "2024-01-15",
+        "currency_code": "MYR",
+        "total_amount": 1060.00,
+        "tax_amount": 60.00
+      },
+      "seller_info": {
+        "company_name": "Tech Solutions Sdn Bhd",
+        "tax_number": "C12345678901234567",
+        "city_name": "Kuala Lumpur",
+        "country_code": "MY"
+      },
+      "buyer_info": {
+        "buyer_name": "Manufacturing Corp Sdn Bhd",
+        "buyer_tax": "C98765432109876543",
+        "buyer_city": "Johor Bahru"
+      }
+    },
+    "env": "sandbox"
+  }'
+```
+
+</CodeGroup>
+
+## Response Format
+
+<ResponseField name="status" type="string">
+  Status of the request (`success` or `error`)
+</ResponseField>
+
+<ResponseField name="data" type="object">
+  Contains processing results and metadata
+  
+  <Expandable title="data properties">
+    <ResponseField name="source" type="object">
+      Source system information including ID and creation status
+    </ResponseField>
+    <ResponseField name="payload" type="object">
+      Payload analysis including field coverage and mapping statistics
+    </ResponseField>
+    <ResponseField name="integration" type="object">
+      Integration details including ID and mapping results for both GETS and country-specific fields
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="metadata" type="object">
+  Processing metadata including timing and flags
+</ResponseField>
+
+<ResponseField name="message" type="string">
+  Human-readable message describing the result
+</ResponseField>
+
+### Success Response
+
+```json
+{
+  "status": "success",
+  "data": {
+    "source": {
+      "sourceid": "01JXA9GDN8QWERTYU789ABCDEF",
+      "created": true
+    },
+    "payload": {
+      "payloadId": "01JXA9GDPNG2B5BXPCGW08WG41",
+      "analysis": {
+        "keys": ["invoice_data", "seller_info", "buyer_info", "saudi_compliance"],
+        "size": 2048,
+        "hasNested": true,
+        "getsFieldsCoverage": 37,
+        "countryFieldsCoverage": 5,
+        "totalCoverage": 42
+      }
+    },
+    "integration": {
+      "integrationId": "01JXA6BREMJZDZNVXHWN7C98ZG",
+      "status": "completed",
+      "mappingResults": {
+        "gets": {
+          "mapped": 37,
+          "total": 37,
+          "completed": true
+        },
+        "country": {
+          "mapped": 5,
+          "total": 5,
+          "completed": true
+        }
+      }
+    }
+  },
+  "metadata": {
+    "requestId": "req_comprehensive_test",
+    "processingTime": 2150,
+    "aiMappingTriggered": true,
+    "templateCreated": true
+  },
+  "message": "Unify processing completed successfully"
+}
+```
+
+## Field Mapping Coverage
+
+The Unify API automatically handles dual mapping for complete compliance:
+
+### GETS Core Fields (37 fields)
+International e-invoicing compliance fields covering:
+- **Header**: Document ID, issue date, currency, type
+- **Parties**: Seller and buyer information with tax details
+- **Items**: Product details, quantities, pricing, tax categories
+- **Totals**: Monetary amounts and tax calculations
+
+### Country-Specific Fields
+
+<Tabs>
+  <Tab title="Saudi Arabia (5 fields)">
+    Boolean flags for ZATCA compliance:
+    - `sa_isExport` - Export transaction flag
+    - `sa_isNominal` - Nominal transaction flag (B2C < 1000 SAR)
+    - `sa_isSelfBilled` - Self-billed invoice flag
+    - `sa_isSummary` - Summary invoice flag
+    - `sa_isThirdPArty` - Third party transaction flag
+  </Tab>
+  
+  <Tab title="Malaysia">
+    Currently no country-specific fields defined for Malaysia.
+    Standard GETS fields provide full compliance coverage.
+  </Tab>
+</Tabs>
+
+## Use Cases
+
+<AccordionGroup>
+  <Accordion title="ERP Integration">
+    **Scenario**: Integrate SAP, Oracle, or custom ERP systems for automated compliance
+    
+    **Implementation**:
+    ```java
+    // Extract data from your ERP
+    Map<String, Object> erpData = extractFromERP(invoiceId);
+    
+    // Process through Unify API
+    UnifyResponse response = GETSUnifySDK.pushToUnify(
+        "sap-erp-001",
+        DocumentType.TAX_INVOICE,
+        getCountryFromInvoice(invoiceId),
+        Operation.SINGLE,
+        Mode.DOCUMENTS,
+        Purpose.MAPPING,
+        erpData
+    );
+    ```
+  </Accordion>
+
+  <Accordion title="Multi-Country Operations">
+    **Scenario**: Handle invoices for multiple countries with different compliance requirements
+    
+    **Implementation**:
+    ```java
+    public UnifyResponse processInvoiceForCountry(Invoice invoice, String countryCode) {
+        return GETSUnifySDK.pushToUnify(
+            "multi-country-erp",
+            DocumentType.TAX_INVOICE,
+            countryCode,  // SA, MY, etc.
+            Operation.SINGLE,
+            Mode.DOCUMENTS,
+            Purpose.MAPPING,
+            invoice.toPayload()
+        );
+    }
+    ```
+  </Accordion>
+
+  <Accordion title="Batch Processing">
+    **Scenario**: Process multiple invoices in a single operation
+    
+    **Implementation**:
+    ```java
+    // Note: Batch mode may require different payload structure
+    UnifyResponse response = GETSUnifySDK.pushToUnify(
+        "batch-processor",
+        DocumentType.TAX_INVOICE,
+        "SA",
+        Operation.BATCH,  // Changed to BATCH
+        Mode.DOCUMENTS,
+        Purpose.MAPPING,
+        batchPayload
+    );
+    ```
+  </Accordion>
+
+  <Accordion title="Validation Only">
+    **Scenario**: Validate data structure without creating documents
+    
+    **Implementation**:
+    ```java
+    UnifyResponse response = GETSUnifySDK.pushToUnify(
+        "validator",
+        DocumentType.TAX_INVOICE,
+        "SA",
+        Operation.SINGLE,
+        Mode.MAPPING,     // MAPPING mode for validation only
+        Purpose.VALIDATION,
+        testPayload
+    );
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Error Handling
+
+<ResponseExample>
+```json Authentication Error
+{
+  "status": "error",
+  "message": "Authentication failed",
+  "error": {
+    "code": "AUTHENTICATION_ERROR",
+    "message": "Invalid or expired JWT token"
+  }
+}
+```
+
+```json Validation Error
+{
+  "status": "error",
+  "message": "Payload validation failed",
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "Required field 'invoice_data.invoice_number' is missing"
+  }
+}
+```
+
+```json Mapping Error
+{
+  "status": "error",
+  "message": "Field mapping incomplete",
+  "error": {
+    "code": "MAPPING_ERROR",
+    "message": "Unable to map required GETS fields: header.issueDate, parties.seller.name"
+  }
+}
+```
+</ResponseExample>
+
+## Performance Considerations
+
+- **Processing Time**: Typically 2-5 seconds for comprehensive mapping
+- **Payload Size**: Recommended maximum 10MB per request
+- **Rate Limits**: Contact support for high-volume requirements
+- **Caching**: SDK automatically handles authentication token caching
+
+## Related Endpoints
+
+<CardGroup cols={2}>
+  <Card
+    title="Create Integration"
+    icon="plus"
+    href="/api-reference/integrations/create"
+  >
+    Manual integration creation for step-by-step setup
+  </Card>
+  <Card
+    title="Get Template Data"
+    icon="table"
+    href="/api-reference/integrations/get-template-data"
+  >
+    Review detailed field mappings generated by Unify API
+  </Card>
+  <Card
+    title="Validate Integration"
+    icon="shield-check"
+    href="/api-reference/integrations/validate"
+  >
+    Additional validation and XML generation
+  </Card>
+  <Card
+    title="Java SDK Guide"
+    icon="coffee"
+    href="/sdk/installation"
+  >
+    Complete SDK installation and configuration guide
+  </Card>
+</CardGroup> 

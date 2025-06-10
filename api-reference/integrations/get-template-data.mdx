@@ -1,0 +1,529 @@
+---
+title: 'Get Template Data'
+api: 'GET https://api.complyance.io/modes-manager/integration/{integrationId}/template'
+description: 'Retrieve the complete field mapping template for an integration'
+---
+
+## Overview
+
+The Get Template Data endpoint returns the complete field mapping template for an active integration. This includes all AI-generated and manual field mappings, coverage statistics, and the standardized GETS format structure.
+
+<Info>
+This endpoint is only available for integrations that have completed the setup process and are in `active` status.
+</Info>
+
+## Authentication
+
+<Snippet file="auth-header.mdx" />
+
+## Path Parameters
+
+<ParamField path="integrationId" type="string" required>
+  The unique identifier of the integration
+</ParamField>
+
+## Query Parameters
+
+<ParamField query="format" type="string" default="json">
+  Response format
+  <Expandable title="Available formats">
+    - `json` - JSON format with field mappings
+    - `gets` - Complete GETS schema structure
+    - `sample` - Sample output showing mapped values
+  </Expandable>
+</ParamField>
+
+<ParamField query="includeUnmapped" type="boolean" default="false">
+  Include unmapped fields in the response
+</ParamField>
+
+## Response
+
+<ResponseField name="success" type="boolean">
+  Indicates if the request was successful
+</ResponseField>
+
+<ResponseField name="integration" type="object">
+  Integration metadata
+  
+  <ResponseField name="integrationId" type="string">
+    Unique identifier for the integration
+  </ResponseField>
+  
+  <ResponseField name="country" type="string">
+    Target country code
+  </ResponseField>
+  
+  <ResponseField name="documentType" type="string">
+    Document type (tax_invoice, credit_note, debit_note)
+  </ResponseField>
+  
+  <ResponseField name="status" type="string">
+    Integration status
+  </ResponseField>
+</ResponseField>
+
+<ResponseField name="template" type="object">
+  Complete field mapping template
+  
+  <ResponseField name="fieldMappings" type="object">
+    Map of GETS fields to source payload fields
+  </ResponseField>
+  
+  <ResponseField name="coverage" type="object">
+    Field coverage statistics
+    
+    <ResponseField name="totalFields" type="number">
+      Total number of required fields
+    </ResponseField>
+    
+    <ResponseField name="mappedFields" type="number">
+      Number of successfully mapped fields
+    </ResponseField>
+    
+    <ResponseField name="unmappedFields" type="array">
+      List of unmapped required fields
+    </ResponseField>
+    
+    <ResponseField name="coveragePercentage" type="number">
+      Percentage of fields mapped (0-100)
+    </ResponseField>
+  </ResponseField>
+  
+  <ResponseField name="getsStructure" type="object">
+    Complete GETS format structure with field descriptions
+  </ResponseField>
+</ResponseField>
+
+## Examples
+
+<CodeGroup>
+
+```bash Basic Request
+curl -X GET 'https://api.complyance.io/modes-manager/integration/INT_123/template' \
+  -H 'Authorization: Bearer YOUR_JWT_TOKEN'
+```
+
+```bash GETS Format
+curl -X GET 'https://api.complyance.io/modes-manager/integration/INT_123/template?format=gets' \
+  -H 'Authorization: Bearer YOUR_JWT_TOKEN'
+```
+
+```bash Include Unmapped
+curl -X GET 'https://api.complyance.io/modes-manager/integration/INT_123/template?includeUnmapped=true' \
+  -H 'Authorization: Bearer YOUR_JWT_TOKEN'
+```
+
+```bash Sample Output
+curl -X GET 'https://api.complyance.io/modes-manager/integration/INT_123/template?format=sample' \
+  -H 'Authorization: Bearer YOUR_JWT_TOKEN'
+```
+
+</CodeGroup>
+
+## Response Examples
+
+<CodeGroup>
+
+```json JSON Format Response
+{
+  "success": true,
+  "integration": {
+    "integrationId": "INT_123",
+    "country": "SA",
+    "documentType": "tax_invoice",
+    "status": "active"
+  },
+  "template": {
+    "fieldMappings": {
+      "header.documentId": "invoice_number",
+      "header.issueDate": "invoice_date",
+      "header.issueTime": "invoice_time",
+      "header.currency": "currency_code",
+      "header.invoiceTypeCode": "document_type",
+      "parties.seller.name": "seller_info.company_name",
+      "parties.seller.identifications.id": "seller_info.vat_registration",
+      "parties.seller.postalAddress.streetName": "seller_info.address.street",
+      "parties.seller.postalAddress.cityName": "seller_info.address.city",
+      "parties.seller.postalAddress.postalZone": "seller_info.address.postal_code",
+      "parties.seller.postalAddress.country.identificationCode": "seller_info.address.country",
+      "parties.buyer.name": "buyer_info.company_name",
+      "parties.buyer.identifications.id": "buyer_info.vat_registration",
+      "items.id": "line_items[].item_id",
+      "items.item.name": "line_items[].description",
+      "items.quantity": "line_items[].quantity",
+      "items.price.priceAmount": "line_items[].unit_price",
+      "legalMonetaryTotal.payableAmount": "totals.grand_total",
+      "taxTotal.taxAmount": "totals.total_tax",
+      "sa_isExport": "saudi_compliance.export_transaction",
+      "sa_isNominal": "saudi_compliance.nominal_transaction"
+    },
+    "coverage": {
+      "totalFields": 42,
+      "mappedFields": 40,
+      "unmappedFields": [
+        "parties.seller.postalAddress.buildingNumber",
+        "parties.seller.postalAddress.district"
+      ],
+      "coveragePercentage": 95.2
+    }
+  }
+}
+```
+
+```json GETS Structure Response
+{
+  "success": true,
+  "integration": {
+    "integrationId": "INT_123",
+    "country": "SA",
+    "documentType": "tax_invoice",
+    "status": "active"
+  },
+  "template": {
+    "getsStructure": {
+      "header": {
+        "documentId": {
+          "type": "string",
+          "required": true,
+          "description": "Unique invoice identifier",
+          "example": "INV-2024-001234",
+          "mappedFrom": "invoice_number"
+        },
+        "issueDate": {
+          "type": "date",
+          "required": true, 
+          "description": "Invoice issue date",
+          "format": "YYYY-MM-DD",
+          "example": "2024-01-15",
+          "mappedFrom": "invoice_date"
+        },
+        "currency": {
+          "type": "string",
+          "required": true,
+          "description": "Currency code (ISO 4217)",
+          "example": "SAR",
+          "mappedFrom": "currency_code"
+        }
+      },
+      "parties": {
+        "seller": {
+          "name": {
+            "type": "string",
+            "required": true,
+            "description": "Seller company name",
+            "example": "Steel Manufacturing Co. Ltd.",
+            "mappedFrom": "seller_info.company_name"
+          },
+          "identifications": {
+            "id": {
+              "type": "string",
+              "required": true,
+              "description": "VAT registration number",
+              "format": "15 digits for Saudi Arabia",
+              "example": "311111111101114",
+              "mappedFrom": "seller_info.vat_registration"
+            }
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+```json Sample Output Response
+{
+  "success": true,
+  "integration": {
+    "integrationId": "INT_123",
+    "country": "SA",
+    "documentType": "tax_invoice",
+    "status": "active"
+  },
+  "template": {
+    "sampleInput": {
+      "invoice_number": "INV-2024-001234",
+      "invoice_date": "2024-01-15",
+      "seller_info": {
+        "company_name": "Steel Manufacturing Co. Ltd.",
+        "vat_registration": "311111111101114"
+      },
+      "line_items": [
+        {
+          "item_id": "STEEL001",
+          "description": "Steel Pipe Fitting",
+          "quantity": 150,
+          "unit_price": 25.00
+        }
+      ]
+    },
+    "sampleOutput": {
+      "header": {
+        "documentId": "INV-2024-001234",
+        "issueDate": "2024-01-15",
+        "currency": "SAR"
+      },
+      "parties": {
+        "seller": {
+          "name": "Steel Manufacturing Co. Ltd.",
+          "identifications": [
+            {
+              "id": "311111111101114",
+              "schemeId": "VAT"
+            }
+          ]
+        }
+      },
+      "items": [
+        {
+          "id": "STEEL001",
+          "item": {
+            "name": "Steel Pipe Fitting"
+          },
+          "quantity": 150,
+          "price": {
+            "priceAmount": 25.00
+          }
+        }
+      ]
+    }
+  }
+}
+```
+
+</CodeGroup>
+
+## Field Categories
+
+### Core GETS Fields (37 fields)
+
+<Tabs>
+  <Tab title="Header Fields">
+    **Document identification and metadata**
+    
+    | Field | Type | Required | Description |
+    |-------|------|----------|-------------|
+    | `header.documentId` | string | ✅ | Invoice number/identifier |
+    | `header.issueDate` | date | ✅ | Invoice issue date |
+    | `header.issueTime` | time | ⚪ | Invoice issue time |
+    | `header.currency` | string | ✅ | Currency code (ISO 4217) |
+    | `header.invoiceTypeCode` | string | ✅ | Document type code |
+  </Tab>
+  
+  <Tab title="Seller Information">
+    **Supplier/seller party details**
+    
+    | Field | Type | Required | Description |
+    |-------|------|----------|-------------|
+    | `parties.seller.name` | string | ✅ | Company/business name |
+    | `parties.seller.identifications.id` | string | ✅ | VAT/tax registration number |
+    | `parties.seller.postalAddress.streetName` | string | ✅ | Street address |
+    | `parties.seller.postalAddress.cityName` | string | ✅ | City name |
+    | `parties.seller.postalAddress.postalZone` | string | ✅ | Postal/ZIP code |
+    | `parties.seller.postalAddress.country.identificationCode` | string | ✅ | Country code |
+  </Tab>
+  
+  <Tab title="Buyer Information">
+    **Customer/buyer party details**
+    
+    | Field | Type | Required | Description |
+    |-------|------|----------|-------------|
+    | `parties.buyer.name` | string | ✅ | Customer name |
+    | `parties.buyer.identifications.id` | string | ⚪ | Customer tax number |
+    | `parties.buyer.postalAddress.streetName` | string | ⚪ | Customer address |
+    | `parties.buyer.postalAddress.cityName` | string | ⚪ | Customer city |
+    | `parties.buyer.postalAddress.country.identificationCode` | string | ⚪ | Customer country |
+  </Tab>
+  
+  <Tab title="Line Items">
+    **Product/service line items**
+    
+    | Field | Type | Required | Description |
+    |-------|------|----------|-------------|
+    | `items[].id` | string | ✅ | Item identifier |
+    | `items[].item.name` | string | ✅ | Item description |
+    | `items[].quantity` | number | ✅ | Quantity |
+    | `items[].price.priceAmount` | number | ✅ | Unit price |
+    | `items[].taxTotal.taxAmount` | number | ✅ | Line tax amount |
+    | `items[].item.classifiedTaxCategory.id` | string | ✅ | Tax category |
+    | `items[].item.classifiedTaxCategory.percent` | number | ✅ | Tax rate percentage |
+  </Tab>
+</Tabs>
+
+### Country-Specific Fields
+
+<Tabs>
+  <Tab title="Saudi Arabia">
+    **ZATCA compliance fields (5 additional)**
+    
+    | Field | Type | Required | Description |
+    |-------|------|----------|-------------|
+    | `sa_isExport` | boolean | ✅ | Export transaction flag |
+    | `sa_isNominal` | boolean | ✅ | Nominal transaction (< 1000 SAR) |
+    | `sa_isSelfBilled` | boolean | ✅ | Self-billed invoice flag |
+    | `sa_isSummary` | boolean | ✅ | Summary invoice flag |
+    | `sa_isThirdPArty` | boolean | ✅ | Third party transaction flag |
+  </Tab>
+  
+  <Tab title="Malaysia">
+    **MyInvois compliance**
+    
+    Uses standard GETS core fields with specific value requirements:
+    - Malaysian tax ID format validation
+    - MYR currency requirement for domestic transactions
+    - Specific tax category codes for Malaysian GST
+  </Tab>
+</Tabs>
+
+## Coverage Analysis
+
+### High Coverage (95%+)
+
+<CardGroup cols={2}>
+  <Card title="✅ Ready for Production" icon="check-circle">
+    **Coverage**: 95-100%
+    
+    Integration is ready for production use with minimal manual intervention required.
+  </Card>
+  <Card title="⚠️ Review Required" icon="exclamation-triangle">
+    **Coverage**: 85-95%
+    
+    Good coverage but review unmapped fields and add manual mappings if needed.
+  </Card>
+</CardGroup>
+
+### Low Coverage (< 85%)
+
+<CardGroup cols={2}>
+  <Card title="❌ Needs Attention" icon="x-circle">
+    **Coverage**: < 85%
+    
+    Significant unmapped fields. Review source data structure and add manual mappings.
+  </Card>
+  <Card title="🔧 Manual Mapping Required" icon="wrench">
+    **Action Required**
+    
+    Use the Manual Mapping API to map critical unmapped fields before production use.
+  </Card>
+</CardGroup>
+
+## Error Responses
+
+<CodeGroup>
+
+```json Integration Not Found
+{
+  "success": false,
+  "error": {
+    "code": "INTEGRATION_NOT_FOUND",
+    "message": "Integration with ID 'INT_123' not found"
+  }
+}
+```
+
+```json Integration Not Active
+{
+  "success": false,
+  "error": {
+    "code": "INTEGRATION_NOT_ACTIVE",
+    "message": "Integration must be in 'active' status to retrieve template data. Current status: draft"
+  }
+}
+```
+
+```json Invalid Format
+{
+  "success": false,
+  "error": {
+    "code": "INVALID_FORMAT",
+    "message": "Invalid format 'xml'. Supported formats: json, gets, sample"
+  }
+}
+```
+
+</CodeGroup>
+
+## Use Cases
+
+<AccordionGroup>
+  <Accordion title="Integration Testing">
+    **Scenario**: Validate field mappings before production deployment
+    
+    **Usage**:
+    ```bash
+    # Get complete template for validation
+    curl -X GET 'https://api.complyance.io/modes-manager/integration/INT_123/template?format=sample' \
+      -H 'Authorization: Bearer YOUR_JWT_TOKEN'
+    ```
+    
+    **Benefits**: Test with sample data, verify all critical fields are mapped
+  </Accordion>
+
+  <Accordion title="Manual Mapping Planning">
+    **Scenario**: Identify unmapped fields that require manual mapping
+    
+    **Usage**:
+    ```bash
+    # Get unmapped fields for manual mapping
+    curl -X GET 'https://api.complyance.io/modes-manager/integration/INT_123/template?includeUnmapped=true' \
+      -H 'Authorization: Bearer YOUR_JWT_TOKEN'
+    ```
+    
+    **Benefits**: Plan manual mapping strategy, prioritize critical unmapped fields
+  </Accordion>
+
+  <Accordion title="Documentation Generation">
+    **Scenario**: Generate documentation for integration implementation
+    
+    **Usage**:
+    ```bash
+    # Get GETS structure for documentation
+    curl -X GET 'https://api.complyance.io/modes-manager/integration/INT_123/template?format=gets' \
+      -H 'Authorization: Bearer YOUR_JWT_TOKEN'
+    ```
+    
+    **Benefits**: Understand complete field requirements, create implementation guides
+  </Accordion>
+
+  <Accordion title="System Integration">
+    **Scenario**: Configure source system to match expected field structure
+    
+    **Usage**: Use field mappings to understand how source data should be structured
+    
+    **Benefits**: Optimize source data format, reduce mapping complexity
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card
+    title="Manual Mapping"
+    icon="hand"
+    href="/api-reference/mapping/add-mapping"
+  >
+    Add custom mappings for unmapped fields
+  </Card>
+  <Card
+    title="Process Documents"
+    icon="gears"
+    href="/api-reference/sdk/unify-api"
+  >
+    Use integration to process real documents
+  </Card>
+  <Card
+    title="Validate Integration"
+    icon="shield-check"
+    href="/api-reference/integrations/validate"
+  >
+    Test integration with sample documents
+  </Card>
+  <Card
+    title="Field Mapping Guide"
+    icon="brain"
+    href="/concepts/field-mapping"
+  >
+    Learn more about field mapping concepts
+  </Card>
+</CardGroup> 

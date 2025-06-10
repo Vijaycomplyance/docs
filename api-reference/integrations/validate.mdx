@@ -1,0 +1,645 @@
+---
+title: 'Validate Integration'
+api: 'POST https://api.complyance.io/modes-manager/integration/{integrationId}/validate'
+description: 'Test an integration with sample documents to validate field mappings and compliance'
+---
+
+## Overview
+
+The Validate Integration endpoint allows you to test an integration with sample documents before using it in production. This endpoint validates field mappings, checks compliance requirements, and provides detailed feedback on any issues.
+
+<Info>
+Use this endpoint to ensure your integration is working correctly before processing real business documents.
+</Info>
+
+## Authentication
+
+<Snippet file="auth-header.mdx" />
+
+## Path Parameters
+
+<ParamField path="integrationId" type="string" required>
+  The unique identifier of the integration to validate
+</ParamField>
+
+## Request Body
+
+<ParamField body="testData" type="object" required>
+  Sample data to test the integration with
+  <Expandable title="Test data structure">
+    Should match the same structure as your real business data. Include representative values for all fields you want to test.
+  </Expandable>
+</ParamField>
+
+<ParamField body="validationType" type="string" default="full">
+  Type of validation to perform
+  <Expandable title="Validation types">
+    - `mapping` - Test field mapping accuracy only
+    - `compliance` - Test compliance validation rules  
+    - `full` - Complete validation (mapping + compliance)
+    - `output` - Generate sample compliance output
+  </Expandable>
+</ParamField>
+
+<ParamField body="strictMode" type="boolean" default="true">
+  Whether to enforce strict validation rules
+  <Expandable title="Strict mode">
+    - `true` - All mandatory fields must be present and valid
+    - `false` - Allow missing optional fields, focus on critical requirements
+  </Expandable>
+</ParamField>
+
+## Response
+
+<ResponseField name="success" type="boolean">
+  Indicates if the validation was successful
+</ResponseField>
+
+<ResponseField name="validation" type="object">
+  Validation results
+  
+  <ResponseField name="status" type="string">
+    Overall validation status: `passed`, `warning`, `failed`
+  </ResponseField>
+  
+  <ResponseField name="score" type="number">
+    Validation score (0-100) indicating overall quality
+  </ResponseField>
+  
+  <ResponseField name="fieldMapping" type="object">
+    Field mapping validation results
+    
+    <ResponseField name="mappedFields" type="number">
+      Number of successfully mapped fields
+    </ResponseField>
+    
+    <ResponseField name="totalFields" type="number">
+      Total number of required fields
+    </ResponseField>
+    
+    <ResponseField name="coverage" type="number">
+      Mapping coverage percentage
+    </ResponseField>
+    
+    <ResponseField name="issues" type="array">
+      Array of mapping issues
+      
+      <ResponseField name="field" type="string">
+        Field name with issue
+      </ResponseField>
+      
+      <ResponseField name="severity" type="string">
+        Issue severity: `error`, `warning`, `info`
+      </ResponseField>
+      
+      <ResponseField name="message" type="string">
+        Human-readable issue description
+      </ResponseField>
+      
+      <ResponseField name="suggestion" type="string">
+        Suggested fix for the issue
+      </ResponseField>
+    </ResponseField>
+  </ResponseField>
+  
+  <ResponseField name="compliance" type="object">
+    Compliance validation results
+    
+    <ResponseField name="country" type="string">
+      Target country for compliance
+    </ResponseField>
+    
+    <ResponseField name="documentType" type="string">
+      Document type being validated
+    </ResponseField>
+    
+    <ResponseField name="requirements" type="object">
+      Country-specific compliance requirements
+      
+      <ResponseField name="passed" type="array">
+        List of passed compliance checks
+      </ResponseField>
+      
+      <ResponseField name="failed" type="array">
+        List of failed compliance checks
+      </ResponseField>
+      
+      <ResponseField name="warnings" type="array">
+        List of compliance warnings
+      </ResponseField>
+    </ResponseField>
+  </ResponseField>
+  
+  <ResponseField name="output" type="object">
+    Generated compliance output (if requested)
+    
+    <ResponseField name="getsFormat" type="object">
+      GETS standardized format output
+    </ResponseField>
+    
+    <ResponseField name="countryFormat" type="object">
+      Country-specific format (XML for Saudi Arabia, JSON for Malaysia)
+    </ResponseField>
+  </ResponseField>
+</ResponseField>
+
+## Examples
+
+<CodeGroup>
+
+```bash Full Validation
+curl -X POST 'https://api.complyance.io/modes-manager/integration/INT_123/validate' \
+  -H 'Authorization: Bearer YOUR_JWT_TOKEN' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "body": {
+      "testData": {
+        "invoice_number": "TEST-001",
+        "invoice_date": "2024-01-15",
+        "seller_info": {
+          "company_name": "Test Company LLC",
+          "vat_registration": "311111111101114"
+        },
+        "buyer_info": {
+          "company_name": "Customer Corp",
+          "vat_registration": "310123456700003"
+        },
+        "line_items": [
+          {
+            "item_id": "ITEM001",
+            "description": "Test Product",
+            "quantity": 10,
+            "unit_price": 100.00,
+            "tax_rate": 15
+          }
+        ],
+        "totals": {
+          "subtotal": 1000.00,
+          "total_tax": 150.00,
+          "grand_total": 1150.00
+        }
+      },
+      "validationType": "full",
+      "strictMode": true
+    }
+  }'
+```
+
+```bash Mapping Only
+curl -X POST 'https://api.complyance.io/modes-manager/integration/INT_123/validate' \
+  -H 'Authorization: Bearer YOUR_JWT_TOKEN' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "body": {
+      "testData": {
+        "invoice_number": "TEST-001",
+        "seller_name": "Test Company"
+      },
+      "validationType": "mapping",
+      "strictMode": false
+    }
+  }'
+```
+
+```bash Generate Output
+curl -X POST 'https://api.complyance.io/modes-manager/integration/INT_123/validate' \
+  -H 'Authorization: Bearer YOUR_JWT_TOKEN' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "body": {
+      "testData": {
+        "invoice_number": "TEST-001",
+        "invoice_date": "2024-01-15"
+      },
+      "validationType": "output"
+    }
+  }'
+```
+
+</CodeGroup>
+
+## Response Examples
+
+<CodeGroup>
+
+```json Successful Validation
+{
+  "success": true,
+  "validation": {
+    "status": "passed",
+    "score": 95,
+    "fieldMapping": {
+      "mappedFields": 40,
+      "totalFields": 42,
+      "coverage": 95.2,
+      "issues": [
+        {
+          "field": "parties.seller.postalAddress.buildingNumber",
+          "severity": "warning",
+          "message": "Field not mapped from source data",
+          "suggestion": "Add building_number field to seller_info or create manual mapping"
+        }
+      ]
+    },
+    "compliance": {
+      "country": "SA",
+      "documentType": "tax_invoice",
+      "requirements": {
+        "passed": [
+          "VAT number format validation",
+          "Currency code compliance",
+          "Tax calculation accuracy",
+          "ZATCA boolean flags present"
+        ],
+        "failed": [],
+        "warnings": [
+          "Building number missing for complete address"
+        ]
+      }
+    },
+    "output": {
+      "getsFormat": {
+        "header": {
+          "documentId": "TEST-001",
+          "issueDate": "2024-01-15",
+          "currency": "SAR"
+        },
+        "parties": {
+          "seller": {
+            "name": "Test Company LLC",
+            "identifications": [
+              {
+                "id": "311111111101114",
+                "schemeId": "VAT"
+              }
+            ]
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+```json Validation with Errors
+{
+  "success": true,
+  "validation": {
+    "status": "failed",
+    "score": 65,
+    "fieldMapping": {
+      "mappedFields": 30,
+      "totalFields": 42,
+      "coverage": 71.4,
+      "issues": [
+        {
+          "field": "header.issueDate",
+          "severity": "error",
+          "message": "Required field not mapped",
+          "suggestion": "Add invoice_date field to your payload or create manual mapping"
+        },
+        {
+          "field": "parties.buyer.identifications.id",
+          "severity": "error", 
+          "message": "Buyer VAT number missing",
+          "suggestion": "Include buyer_vat_number or buyer_tax_id in your data"
+        },
+        {
+          "field": "legalMonetaryTotal.payableAmount",
+          "severity": "warning",
+          "message": "Total amount calculation may be incorrect",
+          "suggestion": "Verify that grand_total includes all taxes and charges"
+        }
+      ]
+    },
+    "compliance": {
+      "country": "SA",
+      "documentType": "tax_invoice",
+      "requirements": {
+        "passed": [
+          "Seller VAT number format",
+          "Currency code valid"
+        ],
+        "failed": [
+          "Missing mandatory issue date",
+          "Incomplete buyer information",
+          "Tax calculation validation failed"
+        ],
+        "warnings": [
+          "Address information incomplete"
+        ]
+      }
+    }
+  }
+}
+```
+
+```json Mapping Only Response
+{
+  "success": true,
+  "validation": {
+    "status": "warning",
+    "score": 85,
+    "fieldMapping": {
+      "mappedFields": 15,
+      "totalFields": 42,
+      "coverage": 35.7,
+      "issues": [
+        {
+          "field": "header.documentId",
+          "severity": "info",
+          "message": "Field successfully mapped",
+          "suggestion": null
+        },
+        {
+          "field": "parties.seller.name",
+          "severity": "info", 
+          "message": "Field successfully mapped",
+          "suggestion": null
+        },
+        {
+          "field": "header.issueDate",
+          "severity": "warning",
+          "message": "Field not present in test data",
+          "suggestion": "Include invoice_date in your test data for complete validation"
+        }
+      ]
+    }
+  }
+}
+```
+
+</CodeGroup>
+
+## Validation Types
+
+<Tabs>
+  <Tab title="Full Validation">
+    **Complete integration testing**
+    
+    - ✅ Field mapping accuracy
+    - ✅ Data type validation  
+    - ✅ Compliance rule checking
+    - ✅ Country-specific requirements
+    - ✅ Output format generation
+    
+    **Best for**: Pre-production validation, comprehensive testing
+  </Tab>
+  
+  <Tab title="Mapping Only">
+    **Field mapping testing**
+    
+    - ✅ Field mapping accuracy
+    - ✅ Data type validation
+    - ❌ Compliance rule checking
+    - ❌ Country-specific validation
+    - ❌ Output generation
+    
+    **Best for**: Testing field mapping changes, debugging mapping issues
+  </Tab>
+  
+  <Tab title="Compliance Only">
+    **Compliance rule testing**
+    
+    - ❌ Field mapping testing
+    - ✅ Business rule validation
+    - ✅ Country-specific requirements
+    - ✅ Tax calculation validation
+    - ❌ Output generation
+    
+    **Best for**: Validating business logic, testing compliance rules
+  </Tab>
+  
+  <Tab title="Output Generation">
+    **Sample output creation**
+    
+    - ✅ Complete output generation
+    - ✅ GETS format creation
+    - ✅ Country-specific format
+    - ✅ QR code generation (Saudi Arabia)
+    - ✅ XML/JSON formatting
+    
+    **Best for**: Testing output format, validating final documents
+  </Tab>
+</Tabs>
+
+## Validation Scores
+
+<CardGroup cols={2}>
+  <Card title="90-100: Excellent" icon="check-circle">
+    **Ready for production**
+    
+    High field coverage, minimal issues, compliant with all requirements.
+  </Card>
+  <Card title="75-89: Good" icon="exclamation-triangle">
+    **Minor issues to address**
+    
+    Good coverage but some missing fields or minor compliance issues.
+  </Card>
+  <Card title="60-74: Needs Work" icon="x-circle">
+    **Significant issues**
+    
+    Multiple missing fields or compliance failures. Review and fix before production.
+  </Card>
+  <Card title="0-59: Critical Issues" icon="alert-triangle">
+    **Not ready for production**
+    
+    Major mapping or compliance problems. Requires significant fixes.
+  </Card>
+</CardGroup>
+
+## Common Issues
+
+<AccordionGroup>
+  <Accordion title="Missing Required Fields">
+    **Problem**: Required fields are not mapped from source data
+    
+    **Error Example**:
+    ```json
+    {
+      "field": "header.issueDate",
+      "severity": "error",
+      "message": "Required field not mapped",
+      "suggestion": "Add invoice_date field to your payload"
+    }
+    ```
+    
+    **Solutions**:
+    - Add missing fields to source data
+    - Create manual mappings for non-standard field names
+    - Ensure field names match expected patterns
+  </Accordion>
+  
+  <Accordion title="Data Type Mismatches">
+    **Problem**: Field values don't match expected data types
+    
+    **Error Example**:
+    ```json
+    {
+      "field": "legalMonetaryTotal.payableAmount",
+      "severity": "error",
+      "message": "Expected number, received string",
+      "suggestion": "Convert '1150.00' to number 1150.00"
+    }
+    ```
+    
+    **Solutions**:
+    - Ensure numeric fields contain numbers, not strings
+    - Use proper date formats (YYYY-MM-DD)
+    - Convert boolean values to true/false
+  </Accordion>
+  
+  <Accordion title="Compliance Violations">
+    **Problem**: Data doesn't meet country-specific requirements
+    
+    **Error Example**:
+    ```json
+    {
+      "field": "parties.seller.identifications.id",
+      "severity": "error",
+      "message": "Invalid VAT number format for Saudi Arabia",
+      "suggestion": "VAT number must be 15 digits (e.g., 311111111101114)"
+    }
+    ```
+    
+    **Solutions**:
+    - Validate VAT number formats for target country
+    - Ensure tax calculations are accurate
+    - Include all required compliance flags
+  </Accordion>
+  
+  <Accordion title="Incomplete Address Information">
+    **Problem**: Address fields are missing or incomplete
+    
+    **Warning Example**:
+    ```json
+    {
+      "field": "parties.seller.postalAddress.buildingNumber",
+      "severity": "warning",
+      "message": "Building number not provided",
+      "suggestion": "Include building number for complete address"
+    }
+    ```
+    
+    **Solutions**:
+    - Provide complete address information where possible
+    - Use manual mapping for address components
+    - Consider if missing fields are truly required
+  </Accordion>
+</AccordionGroup>
+
+## Best Practices
+
+### Test Data Preparation
+
+<CardGroup cols={2}>
+  <Card title="Complete Data" icon="check-circle">
+    **Include all available fields**
+    
+    Use representative data that includes all fields your system generates, even optional ones.
+  </Card>
+  <Card title="Real Values" icon="database">
+    **Use realistic test values**
+    
+    Use real (but anonymized) data rather than placeholder values for more accurate validation.
+  </Card>
+  <Card title="Edge Cases" icon="alert-triangle">
+    **Test edge cases**
+    
+    Include test cases for special scenarios (exports, credits, high amounts, etc.).
+  </Card>
+  <Card title="Multiple Scenarios" icon="layers">
+    **Test various document types**
+    
+    Validate with different document types and business scenarios.
+  </Card>
+</CardGroup>
+
+### Validation Workflow
+
+<Steps>
+  <Step title="Initial Validation">
+    Run full validation with complete test data to get baseline score and identify major issues
+  </Step>
+  <Step title="Fix Critical Issues">
+    Address all error-level issues (missing required fields, data type problems, compliance failures)
+  </Step>
+  <Step title="Address Warnings">
+    Review and fix warning-level issues that could impact compliance or user experience
+  </Step>
+  <Step title="Test Edge Cases">
+    Validate with different scenarios (exports, credits, large amounts, etc.)
+  </Step>
+  <Step title="Final Validation">
+    Run complete validation to ensure all issues are resolved and score is acceptable
+  </Step>
+</Steps>
+
+## Error Responses
+
+<CodeGroup>
+
+```json Integration Not Found
+{
+  "success": false,
+  "error": {
+    "code": "INTEGRATION_NOT_FOUND",
+    "message": "Integration with ID 'INT_123' not found"
+  }
+}
+```
+
+```json Invalid Test Data
+{
+  "success": false,
+  "error": {
+    "code": "INVALID_TEST_DATA",
+    "message": "Test data is required for validation"
+  }
+}
+```
+
+```json Integration Not Ready
+{
+  "success": false,
+  "error": {
+    "code": "INTEGRATION_NOT_READY",
+    "message": "Integration must be in 'active' or 'mapping' status for validation. Current status: draft"
+  }
+}
+```
+
+</CodeGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card
+    title="Fix Issues"
+    icon="wrench"
+    href="/api-reference/mapping/add-mapping"
+  >
+    Add manual mappings to fix validation issues
+  </Card>
+  <Card
+    title="Process Documents"
+    icon="gears"
+    href="/api-reference/sdk/unify-api"
+  >
+    Use validated integration for real document processing
+  </Card>
+  <Card
+    title="Get Template Data"
+    icon="table"
+    href="/api-reference/integrations/get-template-data"
+  >
+    Review complete field mapping template
+  </Card>
+  <Card
+    title="Integration Guide"
+    icon="book"
+    href="/concepts/integrations"
+  >
+    Learn more about integration best practices
+  </Card>
+</CardGroup> 

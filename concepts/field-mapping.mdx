@@ -1,0 +1,527 @@
+---
+title: 'Field Mapping'
+description: 'Understand how AI-powered field mapping converts your data to compliance requirements'
+---
+
+## Overview
+
+Field mapping is the process of connecting your business data fields to standardized compliance requirements. The Complyance platform uses advanced AI to automatically detect, analyze, and map your data structure to international e-invoicing standards (GETS) and country-specific regulations.
+
+<Info>
+Our AI mapping engine achieves 95%+ accuracy in automatically mapping fields, significantly reducing setup time and manual configuration.
+</Info>
+
+## Dual Mapping Architecture
+
+The Complyance platform implements a **dual mapping approach** to ensure complete compliance coverage:
+
+<CardGroup cols={2}>
+  <Card title="GETS Core Fields" icon="globe">
+    **37 International Fields**
+    
+    Standard e-invoicing compliance fields recognized globally for cross-border transactions and international tax reporting.
+  </Card>
+  <Card title="Country-Specific Fields" icon="flag">
+    **Local Compliance Fields**
+    
+    Additional fields required by specific tax authorities (e.g., 5 boolean flags for Saudi Arabia ZATCA compliance).
+  </Card>
+</CardGroup>
+
+## How AI Mapping Works
+
+<Steps>
+  <Step title="Data Structure Analysis">
+    AI analyzes your payload structure, identifying field types, nested objects, arrays, and data patterns
+  </Step>
+  <Step title="Semantic Understanding">
+    Natural language processing determines field meanings based on names, values, and context
+  </Step>
+  <Step title="Pattern Recognition">
+    Machine learning models trained on thousands of business documents recognize common patterns
+  </Step>
+  <Step title="Confidence Scoring">
+    Each mapping receives a confidence score; high-confidence mappings are auto-applied, low-confidence ones are flagged for review
+  </Step>
+  <Step title="Validation & Refinement">
+    Mapped data is validated against compliance rules and refined for accuracy
+  </Step>
+</Steps>
+
+## Field Categories
+
+### GETS Core Fields (37 fields)
+
+<Tabs>
+  <Tab title="Header Fields (5)">
+    **Document Identification & Metadata**
+    
+    | GETS Field | Purpose | Example Source Fields |
+    |------------|---------|----------------------|
+    | `header.documentId` | Invoice number/ID | `invoice_number`, `document_id`, `invoiceId` |
+    | `header.issueDate` | Issue date | `invoice_date`, `issue_date`, `created_date` |
+    | `header.issueTime` | Issue time | `invoice_time`, `timestamp`, `created_time` |
+    | `header.currency` | Currency code | `currency_code`, `currency`, `curr` |
+    | `header.invoiceTypeCode` | Document type | `document_type`, `invoice_type`, `type_code` |
+  </Tab>
+  
+  <Tab title="Seller Party (9)">
+    **Seller/Supplier Information**
+    
+    | GETS Field | Purpose | Example Source Fields |
+    |------------|---------|----------------------|
+    | `parties.seller.name` | Company name | `company_name`, `seller_name`, `supplier_name` |
+    | `parties.seller.identifications.id` | VAT registration | `vat_registration`, `tax_id`, `vat_number` |
+    | `parties.seller.postalAddress.streetName` | Street address | `street_address`, `address_line1`, `street` |
+    | `parties.seller.postalAddress.cityName` | City | `city_name`, `city`, `seller_city` |
+    | `parties.seller.postalAddress.postalZone` | Postal code | `postal_code`, `zip_code`, `postcode` |
+    | `parties.seller.postalAddress.country.identificationCode` | Country | `country_code`, `country`, `seller_country` |
+    | `parties.seller.postalAddress.buildingNumber` | Building number | `building_number`, `building_no`, `street_number` |
+    | `parties.seller.postalAddress.district` | District/Area | `district_name`, `area`, `neighborhood` |
+    | `parties.seller.taxSchemes.companyId` | Tax company ID | `tax_company_id`, `tax_registration`, `company_tax_id` |
+  </Tab>
+  
+  <Tab title="Buyer Party (9)">
+    **Buyer/Customer Information**
+    
+    | GETS Field | Purpose | Example Source Fields |
+    |------------|---------|----------------------|
+    | `parties.buyer.name` | Buyer name | `buyer_name`, `customer_name`, `client_name` |
+    | `parties.buyer.identifications.id` | Buyer VAT | `buyer_vat`, `customer_tax_id`, `buyer_tax_number` |
+    | `parties.buyer.postalAddress.streetName` | Buyer address | `buyer_address`, `customer_street`, `billing_address` |
+    | `parties.buyer.postalAddress.cityName` | Buyer city | `buyer_city`, `customer_city`, `billing_city` |
+    | `parties.buyer.postalAddress.postalZone` | Buyer postal code | `buyer_postal_code`, `customer_zip`, `billing_zip` |
+    | `parties.buyer.postalAddress.country.identificationCode` | Buyer country | `buyer_country`, `customer_country`, `billing_country` |
+    | `parties.buyer.postalAddress.buildingNumber` | Buyer building | `buyer_building`, `customer_building_no` |
+    | `parties.buyer.postalAddress.district` | Buyer district | `buyer_district`, `customer_area` |
+    | `parties.buyer.taxSchemes.companyId` | Buyer tax company ID | `buyer_tax_company_id`, `customer_tax_id` |
+  </Tab>
+  
+  <Tab title="Line Items (8)">
+    **Product/Service Details**
+    
+    | GETS Field | Purpose | Example Source Fields |
+    |------------|---------|----------------------|
+    | `items.id` | Item ID | `item_id`, `product_id`, `line_item_id` |
+    | `items.item.name` | Item name | `item_name`, `product_name`, `description` |
+    | `items.quantity` | Quantity | `quantity`, `qty`, `amount` |
+    | `items.unitCode` | Unit of measure | `unit_code`, `uom`, `unit_of_measure` |
+    | `items.price.priceAmount` | Unit price | `unit_price`, `price`, `rate` |
+    | `items.taxTotal.taxAmount` | Item tax amount | `tax_amount`, `item_tax`, `vat_amount` |
+    | `items.item.classifiedTaxCategory.id` | Tax category | `tax_category`, `tax_code`, `vat_category` |
+    | `items.item.classifiedTaxCategory.percent` | Tax percentage | `tax_rate`, `tax_percent`, `vat_rate` |
+  </Tab>
+  
+  <Tab title="Monetary Totals (6)">
+    **Financial Calculations**
+    
+    | GETS Field | Purpose | Example Source Fields |
+    |------------|---------|----------------------|
+    | `legalMonetaryTotal.lineExtensionAmount` | Line total | `line_extension_amount`, `subtotal`, `net_amount` |
+    | `legalMonetaryTotal.taxExclusiveAmount` | Pre-tax total | `tax_exclusive_amount`, `net_total`, `subtotal` |
+    | `legalMonetaryTotal.payableAmount` | Final amount | `total_amount`, `grand_total`, `payable_amount` |
+    | `taxTotal.taxAmount` | Total tax | `total_tax_amount`, `total_vat`, `tax_total` |
+    | `legalMonetaryTotal.allowanceTotalAmount` | Total discounts | `discount_amount`, `allowance_total`, `total_discount` |
+    | `legalMonetaryTotal.chargeTotalAmount` | Total charges | `charge_amount`, `additional_charges`, `total_charges` |
+  </Tab>
+</Tabs>
+
+### Country-Specific Fields
+
+<Tabs>
+  <Tab title="Saudi Arabia (5 fields)">
+    **ZATCA Compliance Boolean Flags**
+    
+    | Field | Purpose | Example Source Fields |
+    |-------|---------|----------------------|
+    | `sa_isExport` | Export transaction | `export_transaction`, `is_export`, `export_flag` |
+    | `sa_isNominal` | Nominal transaction (B2C < 1000 SAR) | `nominal_transaction`, `is_nominal`, `small_transaction` |
+    | `sa_isSelfBilled` | Self-billed invoice | `self_billed_invoice`, `is_self_billed`, `self_billing` |
+    | `sa_isSummary` | Summary invoice | `summary_invoice`, `is_summary`, `summary_flag` |
+    | `sa_isThirdPArty` | Third party transaction | `third_party_transaction`, `is_third_party`, `third_party_flag` |
+    
+    <Note>
+    These fields are automatically detected from nested objects like `saudi_compliance.*` or similar structures in your payload.
+    </Note>
+  </Tab>
+  
+  <Tab title="Malaysia">
+    **MyInvois Compliance**
+    
+    Currently, Malaysia compliance is handled through the standard GETS core fields. Additional country-specific fields are in development based on MyInvois requirements.
+    
+    <Info>
+    Malaysia support uses the comprehensive GETS field set which provides full compliance coverage for Malaysian e-invoice requirements.
+    </Info>
+  </Tab>
+</Tabs>
+
+## Mapping Process
+
+### Automatic Mapping
+
+The AI mapping engine automatically handles:
+
+<AccordionGroup>
+  <Accordion title="Direct Field Matching">
+    **Exact or near-exact field name matches**
+    
+    ```json
+    // Source data
+    {
+      "invoice_number": "INV-2024-001234",
+      "invoice_date": "2024-01-15"
+    }
+    
+    // Auto-mapped to
+    {
+      "header.documentId": "INV-2024-001234",
+      "header.issueDate": "2024-01-15"
+    }
+    ```
+  </Accordion>
+  
+  <Accordion title="Semantic Analysis">
+    **Understanding field meaning from context**
+    
+    ```json
+    // Source data
+    {
+      "seller_info": {
+        "company_name": "Tech Solutions LLC",
+        "vat_registration": "310123456700003"
+      }
+    }
+    
+    // Auto-mapped to
+    {
+      "parties.seller.name": "Tech Solutions LLC",
+      "parties.seller.identifications.id": "310123456700003"
+    }
+    ```
+  </Accordion>
+  
+  <Accordion title="Nested Object Detection">
+    **Handling complex data structures**
+    
+    ```json
+    // Source data
+    {
+      "saudi_compliance": {
+        "export_transaction": "true",
+        "nominal_transaction": "false"
+      }
+    }
+    
+    // Auto-mapped to
+    {
+      "sa_isExport": true,
+      "sa_isNominal": false
+    }
+    ```
+  </Accordion>
+  
+  <Accordion title="Array Processing">
+    **Mapping line items and repeating structures**
+    
+    ```json
+    // Source data
+    {
+      "line_items": [
+        {
+          "item_id": "ITEM001",
+          "item_name": "Laptop Computer",
+          "quantity": "2",
+          "unit_price": "1500.00"
+        }
+      ]
+    }
+    
+    // Auto-mapped to
+    {
+      "items": [
+        {
+          "id": "ITEM001",
+          "item.name": "Laptop Computer",
+          "quantity": 2,
+          "price.priceAmount": 1500.00
+        }
+      ]
+    }
+    ```
+  </Accordion>
+</AccordionGroup>
+
+### Manual Mapping
+
+For cases where automatic mapping needs adjustment:
+
+<CodeGroup>
+
+```bash Add Manual Mapping
+curl -X POST 'https://api.complyance.io/modes-manager/integration/{integrationId}/mappings' \
+  -H 'Authorization: Bearer YOUR_JWT_TOKEN' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "body": {
+      "getsHeader": "header.documentId",
+      "payloadHeader": "custom_invoice_id",
+      "section": "header",
+      "transformer": "direct"
+    }
+  }'
+```
+
+```bash Update Existing Mapping
+curl -X PUT 'https://api.complyance.io/modes-manager/integration/{integrationId}/mappings' \
+  -H 'Authorization: Bearer YOUR_JWT_TOKEN' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "body": {
+      "getsHeader": "header.documentId",
+      "payloadHeader": "invoice_data.invoice_id",
+      "section": "header",
+      "transformer": "uppercase"
+    }
+  }'
+```
+
+```bash Remove Mapping
+curl -X DELETE 'https://api.complyance.io/modes-manager/integration/{integrationId}/mappings?payloadHeader=old_field_name' \
+  -H 'Authorization: Bearer YOUR_JWT_TOKEN'
+```
+
+</CodeGroup>
+
+## Data Transformations
+
+The mapping engine supports various data transformations:
+
+<Tabs>
+  <Tab title="Direct Mapping">
+    **No transformation - direct value copy**
+    
+    ```json
+    // Source: "invoice_number": "INV-001"
+    // Target: "header.documentId": "INV-001"
+    ```
+  </Tab>
+  
+  <Tab title="Format Conversion">
+    **Data type and format conversions**
+    
+    ```json
+    // String to number
+    // Source: "total_amount": "1500.00"
+    // Target: "legalMonetaryTotal.payableAmount": 1500.00
+    
+    // Date format standardization
+    // Source: "invoice_date": "15/01/2024"
+    // Target: "header.issueDate": "2024-01-15"
+    
+    // Boolean conversion
+    // Source: "export_transaction": "true"
+    // Target: "sa_isExport": true
+    ```
+  </Tab>
+  
+  <Tab title="String Transformations">
+    **Text case and format changes**
+    
+    ```json
+    // Uppercase transformation
+    // Source: "currency_code": "sar"
+    // Target: "header.currency": "SAR"
+    
+    // Lowercase transformation
+    // Source: "COUNTRY_CODE": "SA"
+    // Target: "parties.seller.postalAddress.country.identificationCode": "sa"
+    ```
+  </Tab>
+  
+  <Tab title="Complex Calculations">
+    **Derived values and calculations**
+    
+    ```json
+    // Tax calculation from rate and amount
+    // Source: "unit_price": 100, "tax_rate": 15
+    // Target: "items.taxTotal.taxAmount": 15.00
+    
+    // Total calculation from line items
+    // Source: Multiple line items
+    // Target: "legalMonetaryTotal.payableAmount": calculated total
+    ```
+  </Tab>
+</Tabs>
+
+## Validation & Quality Assurance
+
+### Mapping Validation
+
+<AccordionGroup>
+  <Accordion title="Field Coverage Validation">
+    **Ensures all mandatory fields are mapped**
+    
+    - GETS Core Fields: 37/37 required
+    - Country-Specific Fields: All required fields for target country
+    - Data type compatibility checks
+    - Format validation (dates, numbers, currencies)
+  </Accordion>
+  
+  <Accordion title="Data Quality Checks">
+    **Validates mapped data quality**
+    
+    - VAT number format validation
+    - Currency code compliance (ISO 4217)
+    - Date format standardization
+    - Numeric value range checks
+  </Accordion>
+  
+  <Accordion title="Business Logic Validation">
+    **Ensures business rule compliance**
+    
+    - Tax calculations accuracy
+    - Total amounts consistency
+    - Required field presence
+    - Country-specific business rules
+  </Accordion>
+</AccordionGroup>
+
+### Error Handling
+
+Common mapping issues and solutions:
+
+<Tabs>
+  <Tab title="Missing Fields">
+    **Problem**: Required fields not found in source data
+    
+    **Solution**:
+    ```json
+    {
+      "error": "Missing mandatory field",
+      "field": "header.issueDate",
+      "suggestion": "Add invoice_date or similar field to your payload"
+    }
+    ```
+    
+    **Actions**:
+    - Add missing fields to source data
+    - Use manual mapping for non-standard field names
+    - Provide default values where applicable
+  </Tab>
+  
+  <Tab title="Data Type Mismatch">
+    **Problem**: Field values don't match expected data types
+    
+    **Solution**:
+    ```json
+    {
+      "error": "Data type mismatch", 
+      "field": "legalMonetaryTotal.payableAmount",
+      "expected": "number",
+      "received": "string",
+      "suggestion": "Convert string '1500.00' to number 1500.00"
+    }
+    ```
+    
+    **Actions**:
+    - Apply appropriate transformers
+    - Clean source data format
+    - Use custom transformation rules
+  </Tab>
+  
+  <Tab title="Format Issues">
+    **Problem**: Data format doesn't meet compliance requirements
+    
+    **Solution**:
+    ```json
+    {
+      "error": "Invalid format",
+      "field": "parties.seller.identifications.id",
+      "value": "12345",
+      "expected_format": "Saudi VAT format (15 digits)",
+      "suggestion": "VAT number should be 15 digits like 310123456700003"
+    }
+    ```
+    
+    **Actions**:
+    - Validate source data format
+    - Apply format transformation
+    - Check country-specific requirements
+  </Tab>
+</Tabs>
+
+## Best Practices
+
+### Data Preparation
+
+<CardGroup cols={2}>
+  <Card title="Field Naming" icon="tag">
+    **Use descriptive, consistent field names**
+    
+    ✅ `invoice_number`, `seller_vat_registration`
+    
+    ❌ `inv_no`, `seller_tax`
+  </Card>
+  <Card title="Data Structure" icon="sitemap">
+    **Organize related fields logically**
+    
+    ✅ Group seller info in `seller_info` object
+    
+    ❌ Flat structure with `seller_name`, `seller_city` at root
+  </Card>
+  <Card title="Data Types" icon="code">
+    **Use appropriate data types**
+    
+    ✅ Numbers for amounts, booleans for flags
+    
+    ❌ Everything as strings
+  </Card>
+  <Card title="Completeness" icon="check-circle">
+    **Include all required fields**
+    
+    ✅ Complete sample data with all fields
+    
+    ❌ Partial data missing key information
+  </Card>
+</CardGroup>
+
+### Performance Optimization
+
+- **Consistent Structure**: Use the same field structure across all documents
+- **Efficient Nesting**: Organize nested objects logically for faster processing
+- **Data Validation**: Validate data at source to reduce mapping errors
+- **Template Reuse**: Create reusable templates for common document types
+
+## Getting Started
+
+<CardGroup cols={2}>
+  <Card
+    title="View Template Data"
+    icon="table"
+    href="/api-reference/integrations/get-template-data"
+  >
+    See how your fields are mapped to compliance requirements
+  </Card>
+  <Card
+    title="Manual Mapping APIs"
+    icon="hand"
+    href="/api-reference/mapping/add-mapping"
+  >
+    Add custom field mappings when needed
+  </Card>
+  <Card
+    title="Integration Guide"
+    icon="puzzle-piece"
+    href="/concepts/integrations"
+  >
+    Learn about the complete integration process
+  </Card>
+  <Card
+    title="Document Types"
+    icon="file-invoice"
+    href="/concepts/document-types"
+  >
+    Understand different document type requirements
+  </Card>
+</CardGroup> 

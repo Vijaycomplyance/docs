@@ -1,0 +1,541 @@
+---
+title: 'Get All Integrations'
+api: 'GET https://api.complyance.io/modes-manager/integrations'
+description: 'Retrieve a list of all integrations for your workspace'
+---
+
+## Overview
+
+The Get All Integrations endpoint returns a paginated list of all integrations in your workspace. This includes integrations in all states (draft, mapping, active, error) with their current configuration and status.
+
+<Info>
+Use this endpoint to monitor integration health, track configuration progress, and manage multiple integrations.
+</Info>
+
+## Authentication
+
+<Snippet file="auth-header.mdx" />
+
+## Query Parameters
+
+<ParamField query="status" type="string">
+  Filter integrations by status
+  <Expandable title="Available statuses">
+    - `draft` - Newly created, configuration in progress
+    - `mapping` - AI processing sample data  
+    - `active` - Ready for production use
+    - `error` - Configuration failed
+  </Expandable>
+</ParamField>
+
+<ParamField query="country" type="string">
+  Filter integrations by target country code
+  <Expandable title="Supported countries">
+    - `SA` - Saudi Arabia
+    - `MY` - Malaysia
+  </Expandable>
+</ParamField>
+
+<ParamField query="documentType" type="string">
+  Filter integrations by document type
+  <Expandable title="Document types">
+    - `tax_invoice` - Standard tax invoices
+    - `credit_note` - Credit notes and refunds
+    - `debit_note` - Debit notes and additional charges
+  </Expandable>
+</ParamField>
+
+<ParamField query="limit" type="number" default="20">
+  Number of integrations to return (max 100)
+</ParamField>
+
+<ParamField query="offset" type="number" default="0">
+  Number of integrations to skip for pagination
+</ParamField>
+
+<ParamField query="sortBy" type="string" default="createdAt">
+  Field to sort by
+  <Expandable title="Sort options">
+    - `createdAt` - Creation date (newest first)
+    - `updatedAt` - Last update date
+    - `name` - Integration name
+    - `status` - Integration status
+  </Expandable>
+</ParamField>
+
+<ParamField query="sortOrder" type="string" default="desc">
+  Sort order (`asc` or `desc`)
+</ParamField>
+
+## Response
+
+<ResponseField name="success" type="boolean">
+  Indicates if the request was successful
+</ResponseField>
+
+<ResponseField name="integrations" type="array">
+  Array of integration objects
+  
+  <ResponseField name="integrationId" type="string">
+    Unique identifier for the integration
+  </ResponseField>
+  
+  <ResponseField name="name" type="string">
+    Human-readable name for the integration
+  </ResponseField>
+  
+  <ResponseField name="country" type="string">
+    Target country code (if set)
+  </ResponseField>
+  
+  <ResponseField name="documentType" type="string">
+    Document type (if set)
+  </ResponseField>
+  
+  <ResponseField name="status" type="string">
+    Current integration status
+  </ResponseField>
+  
+  <ResponseField name="currentStep" type="string">
+    Current configuration step
+  </ResponseField>
+  
+  <ResponseField name="coverage" type="object">
+    Field mapping coverage statistics
+    
+    <ResponseField name="totalFields" type="number">
+      Total required fields
+    </ResponseField>
+    
+    <ResponseField name="mappedFields" type="number">
+      Successfully mapped fields
+    </ResponseField>
+    
+    <ResponseField name="coveragePercentage" type="number">
+      Coverage percentage (0-100)
+    </ResponseField>
+  </ResponseField>
+  
+  <ResponseField name="createdAt" type="string">
+    Integration creation timestamp
+  </ResponseField>
+  
+  <ResponseField name="updatedAt" type="string">
+    Last update timestamp
+  </ResponseField>
+  
+  <ResponseField name="lastUsed" type="string">
+    Last time integration processed a document
+  </ResponseField>
+</ResponseField>
+
+<ResponseField name="pagination" type="object">
+  Pagination information
+  
+  <ResponseField name="total" type="number">
+    Total number of integrations
+  </ResponseField>
+  
+  <ResponseField name="limit" type="number">
+    Number of integrations returned
+  </ResponseField>
+  
+  <ResponseField name="offset" type="number">
+    Number of integrations skipped
+  </ResponseField>
+  
+  <ResponseField name="hasMore" type="boolean">
+    Whether more integrations are available
+  </ResponseField>
+</ResponseField>
+
+## Examples
+
+<CodeGroup>
+
+```bash Get All Integrations
+curl -X GET 'https://api.complyance.io/modes-manager/integrations' \
+  -H 'Authorization: Bearer YOUR_JWT_TOKEN'
+```
+
+```bash Filter by Status
+curl -X GET 'https://api.complyance.io/modes-manager/integrations?status=active' \
+  -H 'Authorization: Bearer YOUR_JWT_TOKEN'
+```
+
+```bash Filter by Country
+curl -X GET 'https://api.complyance.io/modes-manager/integrations?country=SA' \
+  -H 'Authorization: Bearer YOUR_JWT_TOKEN'
+```
+
+```bash Paginated Request
+curl -X GET 'https://api.complyance.io/modes-manager/integrations?limit=10&offset=20' \
+  -H 'Authorization: Bearer YOUR_JWT_TOKEN'
+```
+
+```bash Multiple Filters
+curl -X GET 'https://api.complyance.io/modes-manager/integrations?status=active&country=SA&documentType=tax_invoice' \
+  -H 'Authorization: Bearer YOUR_JWT_TOKEN'
+```
+
+</CodeGroup>
+
+## Response Examples
+
+<CodeGroup>
+
+```json Successful Response
+{
+  "success": true,
+  "integrations": [
+    {
+      "integrationId": "INT_001",
+      "name": "Saudi Arabia Tax Invoices",
+      "country": "SA",
+      "documentType": "tax_invoice", 
+      "status": "active",
+      "currentStep": "complete",
+      "coverage": {
+        "totalFields": 42,
+        "mappedFields": 42,
+        "coveragePercentage": 100
+      },
+      "createdAt": "2024-01-15T10:30:00Z",
+      "updatedAt": "2024-01-15T11:45:00Z",
+      "lastUsed": "2024-01-20T14:22:00Z"
+    },
+    {
+      "integrationId": "INT_002",
+      "name": "Malaysia E-Invoices", 
+      "country": "MY",
+      "documentType": "tax_invoice",
+      "status": "mapping",
+      "currentStep": "review",
+      "coverage": {
+        "totalFields": 37,
+        "mappedFields": 35,
+        "coveragePercentage": 94.6
+      },
+      "createdAt": "2024-01-18T09:15:00Z",
+      "updatedAt": "2024-01-18T09:45:00Z",
+      "lastUsed": null
+    },
+    {
+      "integrationId": "INT_003",
+      "name": "Saudi Credit Notes",
+      "country": "SA", 
+      "documentType": "credit_note",
+      "status": "draft",
+      "currentStep": "payload",
+      "coverage": null,
+      "createdAt": "2024-01-20T16:00:00Z",
+      "updatedAt": "2024-01-20T16:30:00Z",
+      "lastUsed": null
+    }
+  ],
+  "pagination": {
+    "total": 8,
+    "limit": 20,
+    "offset": 0,
+    "hasMore": false
+  }
+}
+```
+
+```json Filtered Response (Active Only)
+{
+  "success": true,
+  "integrations": [
+    {
+      "integrationId": "INT_001",
+      "name": "Saudi Arabia Tax Invoices",
+      "country": "SA",
+      "documentType": "tax_invoice",
+      "status": "active",
+      "currentStep": "complete",
+      "coverage": {
+        "totalFields": 42,
+        "mappedFields": 42,
+        "coveragePercentage": 100
+      },
+      "createdAt": "2024-01-15T10:30:00Z",
+      "updatedAt": "2024-01-15T11:45:00Z",
+      "lastUsed": "2024-01-20T14:22:00Z"
+    }
+  ],
+  "pagination": {
+    "total": 1,
+    "limit": 20,
+    "offset": 0,
+    "hasMore": false
+  }
+}
+```
+
+```json Empty Response
+{
+  "success": true,
+  "integrations": [],
+  "pagination": {
+    "total": 0,
+    "limit": 20,
+    "offset": 0,
+    "hasMore": false
+  }
+}
+```
+
+</CodeGroup>
+
+## Status Overview
+
+<CardGroup cols={2}>
+  <Card title="draft" icon="file-pen">
+    **Configuration in progress**
+    
+    Integration created but not yet fully configured. May be missing country, document type, or sample data.
+  </Card>
+  <Card title="mapping" icon="brain">
+    **AI processing**
+    
+    Sample data uploaded, AI generating field mappings. Review and complete setup when ready.
+  </Card>
+  <Card title="active" icon="check-circle">
+    **Production ready**
+    
+    Fully configured and ready to process documents. Can be used for real transaction processing.
+  </Card>
+  <Card title="error" icon="x-circle">
+    **Needs attention**
+    
+    Configuration failed or integration encountered an error. Review and fix issues.
+  </Card>
+</CardGroup>
+
+## Use Cases
+
+<AccordionGroup>
+  <Accordion title="Dashboard Overview">
+    **Scenario**: Display integration status in your application dashboard
+    
+    **Usage**:
+    ```bash
+    # Get summary of all integrations
+    curl -X GET 'https://api.complyance.io/modes-manager/integrations?limit=50' \
+      -H 'Authorization: Bearer YOUR_JWT_TOKEN'
+    ```
+    
+    **Benefits**: Monitor integration health, track setup progress, identify issues
+  </Accordion>
+
+  <Accordion title="Production Monitoring">
+    **Scenario**: Monitor active integrations for operational health
+    
+    **Usage**:
+    ```bash
+    # Get only active integrations
+    curl -X GET 'https://api.complyance.io/modes-manager/integrations?status=active' \
+      -H 'Authorization: Bearer YOUR_JWT_TOKEN'
+    ```
+    
+    **Benefits**: Focus on production integrations, monitor usage patterns, track performance
+  </Accordion>
+
+  <Accordion title="Configuration Management">
+    **Scenario**: Identify integrations that need configuration completion
+    
+    **Usage**:
+    ```bash
+    # Get draft integrations that need completion
+    curl -X GET 'https://api.complyance.io/modes-manager/integrations?status=draft' \
+      -H 'Authorization: Bearer YOUR_JWT_TOKEN'
+    ```
+    
+    **Benefits**: Track setup progress, prioritize completion tasks, manage team workflows
+  </Accordion>
+
+  <Accordion title="Integration Selection">
+    **Scenario**: Select appropriate integration for document processing
+    
+    **Usage**:
+    ```bash
+    # Get integrations for specific country and document type
+    curl -X GET 'https://api.complyance.io/modes-manager/integrations?status=active&country=SA&documentType=tax_invoice' \
+      -H 'Authorization: Bearer YOUR_JWT_TOKEN'
+    ```
+    
+    **Benefits**: Find correct integration for processing, ensure proper compliance setup
+  </Accordion>
+</AccordionGroup>
+
+## Filtering and Sorting
+
+### Combining Filters
+
+You can combine multiple filters for precise results:
+
+```bash
+# Active Saudi Arabia integrations, sorted by last used
+curl -X GET 'https://api.complyance.io/modes-manager/integrations?status=active&country=SA&sortBy=lastUsed&sortOrder=desc' \
+  -H 'Authorization: Bearer YOUR_JWT_TOKEN'
+
+# Recent draft integrations needing completion
+curl -X GET 'https://api.complyance.io/modes-manager/integrations?status=draft&sortBy=createdAt&sortOrder=desc&limit=5' \
+  -H 'Authorization: Bearer YOUR_JWT_TOKEN'
+```
+
+### Pagination Best Practices
+
+For large numbers of integrations, use pagination:
+
+<Tabs>
+  <Tab title="First Page">
+    ```bash
+    curl -X GET 'https://api.complyance.io/modes-manager/integrations?limit=20&offset=0' \
+      -H 'Authorization: Bearer YOUR_JWT_TOKEN'
+    ```
+  </Tab>
+  
+  <Tab title="Next Page">
+    ```bash
+    curl -X GET 'https://api.complyance.io/modes-manager/integrations?limit=20&offset=20' \
+      -H 'Authorization: Bearer YOUR_JWT_TOKEN'
+    ```
+  </Tab>
+  
+  <Tab title="Check for More">
+    ```javascript
+    const response = await fetch('/integrations?limit=20&offset=0');
+    const data = await response.json();
+    
+    if (data.pagination.hasMore) {
+      // Load next page
+      const nextOffset = data.pagination.offset + data.pagination.limit;
+      // Fetch next page...
+    }
+    ```
+  </Tab>
+</Tabs>
+
+## Error Responses
+
+<CodeGroup>
+
+```json Invalid Filter Value
+{
+  "success": false,
+  "error": {
+    "code": "INVALID_FILTER",
+    "message": "Invalid status value 'invalid'. Valid values: draft, mapping, active, error"
+  }
+}
+```
+
+```json Invalid Pagination
+{
+  "success": false,
+  "error": {
+    "code": "INVALID_PAGINATION",
+    "message": "Limit must be between 1 and 100"
+  }
+}
+```
+
+```json Unauthorized
+{
+  "success": false,
+  "error": {
+    "code": "UNAUTHORIZED",
+    "message": "Invalid or expired JWT token"
+  }
+}
+```
+
+</CodeGroup>
+
+## Integration Management
+
+### Quick Actions by Status
+
+<Tabs>
+  <Tab title="Draft Integrations">
+    **Actions needed**:
+    - Complete country and document type selection
+    - Upload sample data for field mapping
+    - Review AI-generated mappings
+    - Activate for production use
+    
+    **API calls**:
+    - [Update Progress](/api-reference/integrations/update-progress)
+    - [Manual Mapping](/api-reference/mapping/add-mapping)
+  </Tab>
+  
+  <Tab title="Mapping Integrations">
+    **Actions needed**:
+    - Review AI-generated field mappings
+    - Add manual mappings for unmapped fields
+    - Test with sample documents
+    - Complete integration setup
+    
+    **API calls**:
+    - [Get Template Data](/api-reference/integrations/get-template-data)
+    - [Manual Mapping](/api-reference/mapping/add-mapping)
+  </Tab>
+  
+  <Tab title="Active Integrations">
+    **Available actions**:
+    - Process production documents
+    - Monitor field mapping coverage
+    - Update manual mappings as needed
+    - View processing analytics
+    
+    **API calls**:
+    - [Unify API](/api-reference/sdk/unify-api)
+    - [Get Template Data](/api-reference/integrations/get-template-data)
+  </Tab>
+  
+  <Tab title="Error Integrations">
+    **Troubleshooting**:
+    - Review error details and logs
+    - Fix configuration issues
+    - Re-upload sample data if needed
+    - Restart setup process if necessary
+    
+    **API calls**:
+    - [Update Progress](/api-reference/integrations/update-progress)
+    - [Validate](/api-reference/integrations/validate)
+  </Tab>
+</Tabs>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card
+    title="Create Integration"
+    icon="plus"
+    href="/api-reference/integrations/create"
+  >
+    Create a new integration for your compliance needs
+  </Card>
+  <Card
+    title="Update Progress"
+    icon="arrow-right"
+    href="/api-reference/integrations/update-progress"
+  >
+    Continue configuration of draft integrations
+  </Card>
+  <Card
+    title="Process Documents"
+    icon="gears"
+    href="/api-reference/sdk/unify-api"
+  >
+    Use active integrations to process documents
+  </Card>
+  <Card
+    title="Integration Concepts"
+    icon="lightbulb"
+    href="/concepts/integrations"
+  >
+    Learn more about integration concepts and best practices
+  </Card>
+</CardGroup> 

@@ -1,0 +1,246 @@
+---
+title: 'Java SDK Implementation Guide'
+description: 'Step-by-step guide to integrate Complyance invoicing into your Java application'
+---
+
+## Getting Started
+
+The Complyance Java SDK makes it easy to send invoices from your Java application to tax authorities worldwide. Follow these simple steps to get started.
+
+## Step 1: Add SDK to Your Project
+
+### Maven
+Add this to your `pom.xml`:
+
+```xml
+<dependency>
+    <groupId>io.complyance</groupId>
+    <artifactId>complyance-java-sdk</artifactId>
+    <version>1.0.0</version>
+</dependency>
+```
+
+### Gradle
+Add this to your `build.gradle`:
+
+```gradle
+implementation 'io.complyance:complyance-java-sdk:1.0.0'
+```
+
+## Step 2: Configure the SDK
+
+Initialize the SDK with your API key:
+
+```java
+import io.complyance.sdk.*;
+
+// Configure your source information
+Source source = new Source(
+    SourceType.FIRST_PARTY,
+    "your-system-id",
+    "Your System Name",
+    "1.0"
+);
+
+// Initialize with your API key
+SDKConfig config = new SDKConfig(
+    "your-api-key-here",
+    Environment.SANDBOX,  // Use PRODUCTION for live
+    Arrays.asList(source)
+);
+
+GETSUnifySDK.configure(config);
+```
+
+## Step 3: Prepare Your Invoice Data
+
+Create a Map with your invoice information:
+
+```java
+Map<String, Object> invoice = new HashMap<>();
+
+// Basic invoice information
+Map<String, Object> header = new HashMap<>();
+header.put("invoiceNumber", "INV-2024-001");
+header.put("invoiceDate", "2024-01-15T10:30:00Z");
+header.put("documentType", "tax_invoice");
+header.put("currency", "USD");
+invoice.put("header", header);
+
+// Seller information (your business)
+Map<String, Object> seller = new HashMap<>();
+seller.put("name", "Your Business Name");
+seller.put("vatNumber", "Your-VAT-Number");
+seller.put("address", "Your Business Address");
+invoice.put("seller", seller);
+
+// Customer information
+Map<String, Object> buyer = new HashMap<>();
+buyer.put("name", "Customer Name");
+buyer.put("address", "Customer Address");
+invoice.put("buyer", buyer);
+
+// Invoice line items
+List<Map<String, Object>> items = new ArrayList<>();
+Map<String, Object> item = new HashMap<>();
+item.put("description", "Professional Services");
+item.put("quantity", 1);
+item.put("unitPrice", 1000.00);
+item.put("taxRate", 20);
+items.add(item);
+invoice.put("items", items);
+
+// Totals
+Map<String, Object> totals = new HashMap<>();
+totals.put("subtotal", 1000.00);
+totals.put("taxAmount", 200.00);
+totals.put("totalAmount", 1200.00);
+invoice.put("totals", totals);
+```
+
+## Step 4: Send Your Invoice
+
+Submit your invoice to the tax authorities:
+
+```java
+try {
+    UnifyResponse response = GETSUnifySDK.pushToUnify(
+        "your-system-id",           // Your source ID
+        DocumentType.TAX_INVOICE,   // Document type
+        "GB",                       // Country code (GB, SA, MY, etc.)
+        Operation.SINGLE,           // Single document
+        Mode.DOCUMENTS,             // Processing mode
+        Purpose.PRODUCTION,         // Send to tax authority
+        invoice                     // Your invoice data
+    );
+    
+    if (response.getStatus().equals("success")) {
+        String documentId = response.getData().get("documentId").toString();
+        System.out.println("Invoice submitted successfully! ID: " + documentId);
+    } else {
+        System.out.println("Error: " + response.getMessage());
+    }
+    
+} catch (SDKException e) {
+    System.out.println("SDK Error: " + e.getMessage());
+}
+```
+
+## Step 5: Handle Different Countries
+
+### Saudi Arabia (ZATCA)
+```java
+// For Saudi Arabia invoices
+UnifyResponse response = GETSUnifySDK.pushToUnify(
+    "your-system-id",
+    DocumentType.TAX_INVOICE,
+    "SA",                    // Saudi Arabia
+    Operation.SINGLE,
+    Mode.DOCUMENTS,
+    Purpose.PRODUCTION,
+    invoice
+);
+```
+
+### Malaysia (MyInvois)
+```java
+// For Malaysia invoices
+UnifyResponse response = GETSUnifySDK.pushToUnify(
+    "your-system-id",
+    DocumentType.TAX_INVOICE,
+    "MY",                    // Malaysia
+    Operation.SINGLE,
+    Mode.DOCUMENTS,
+    Purpose.PRODUCTION,
+    invoice
+);
+```
+
+## Step 6: Test Before Going Live
+
+Always test your integration first:
+
+```java
+// Test your invoice before sending to tax authority
+UnifyResponse testResponse = GETSUnifySDK.pushToUnify(
+    "your-system-id",
+    DocumentType.TAX_INVOICE,
+    "GB",
+    Operation.SINGLE,
+    Mode.DOCUMENTS,
+    Purpose.VALIDATION,      // Test mode - won't send to tax authority
+    invoice
+);
+
+if (testResponse.getStatus().equals("success")) {
+    System.out.println("Invoice is valid and ready to send!");
+} else {
+    System.out.println("Invoice has issues: " + testResponse.getMessage());
+}
+```
+
+## Complete Example
+
+Here's a complete working example:
+
+```java
+public class InvoiceExample {
+    public static void main(String[] args) {
+        try {
+            // 1. Configure SDK
+            Source source = new Source(SourceType.FIRST_PARTY, "my-app", "My App", "1.0");
+            SDKConfig config = new SDKConfig("your-api-key", Environment.SANDBOX, Arrays.asList(source));
+            GETSUnifySDK.configure(config);
+            
+            // 2. Create invoice
+            Map<String, Object> invoice = createInvoice();
+            
+            // 3. Send invoice
+            UnifyResponse response = GETSUnifySDK.pushToUnify(
+                "my-app",
+                DocumentType.TAX_INVOICE,
+                "GB",
+                Operation.SINGLE,
+                Mode.DOCUMENTS,
+                Purpose.PRODUCTION,
+                invoice
+            );
+            
+            // 4. Handle response
+            if (response.getStatus().equals("success")) {
+                System.out.println("Success! Document ID: " + response.getData().get("documentId"));
+            } else {
+                System.out.println("Error: " + response.getMessage());
+            }
+            
+        } catch (Exception e) {
+            System.out.println("Error: " + e.getMessage());
+        }
+    }
+    
+    private static Map<String, Object> createInvoice() {
+        Map<String, Object> invoice = new HashMap<>();
+        
+        // Add your invoice data here
+        // (use the structure from Step 3 above)
+        
+        return invoice;
+    }
+}
+```
+
+## Next Steps
+
+1. **Get your API key** from the Complyance dashboard
+2. **Test your integration** using the validation mode
+3. **Go live** by switching to PRODUCTION environment
+4. **Monitor your invoices** through the dashboard
+
+## Support
+
+Need help? Contact our support team:
+- Email: support@complyance.io
+- Documentation: https://docs.complyance.io
+- Dashboard: https://dashboard.complyance.io
+
+Our team is here to help you get your integration working smoothly! 

@@ -1,0 +1,481 @@
+---
+title: 'Update Integration Progress'
+api: 'PUT https://api.complyance.io/modes-manager/integration/{integrationId}/progress'
+description: 'Update the progress of an integration configuration through its setup steps'
+---
+
+## Overview
+
+The Update Integration Progress endpoint allows you to advance an integration through its configuration steps. This endpoint is used to set the country, document type, upload sample data, and complete the integration setup process.
+
+<Warning>
+Integration steps must be completed in order. You cannot skip steps or go backwards without creating a new integration.
+</Warning>
+
+## Authentication
+
+<Snippet file="auth-header.mdx" />
+
+## Path Parameters
+
+<ParamField path="integrationId" type="string" required>
+  The unique identifier of the integration to update
+</ParamField>
+
+## Request Body
+
+<ParamField body="step" type="string" required>
+  The configuration step to update
+  <Expandable title="Available steps">
+    - `country` - Set the target country for compliance
+    - `documentType` - Set the document type (tax_invoice, credit_note, debit_note)  
+    - `payload` - Upload sample data for field mapping
+    - `complete` - Mark integration as complete and ready for use
+  </Expandable>
+</ParamField>
+
+<ParamField body="data" type="object" required>
+  Step-specific data payload
+  <Expandable title="Step data formats">
+    **Country Step:**
+    ```json
+    { "country": "SA" }
+    ```
+    
+    **Document Type Step:**
+    ```json
+    { "documentType": "tax_invoice" }
+    ```
+    
+    **Payload Step:**
+    ```json
+    { "payload": { /* your sample data */ } }
+    ```
+    
+    **Complete Step:**
+    ```json
+    { "status": "active" }
+    ```
+  </Expandable>
+</ParamField>
+
+## Response
+
+<ResponseField name="success" type="boolean">
+  Indicates if the progress update was successful
+</ResponseField>
+
+<ResponseField name="integration" type="object">
+  Updated integration object with current status
+  
+  <Expandable title="Integration object">
+    <ResponseField name="integrationId" type="string">
+      Unique identifier for the integration
+    </ResponseField>
+    
+    <ResponseField name="currentStep" type="string">
+      Current step in the configuration process
+    </ResponseField>
+    
+    <ResponseField name="country" type="string">
+      Target country code (if set)
+    </ResponseField>
+    
+    <ResponseField name="documentType" type="string">
+      Document type (if set)
+    </ResponseField>
+    
+    <ResponseField name="status" type="string">
+      Integration status: `draft`, `mapping`, `active`, `error`
+    </ResponseField>
+    
+    <ResponseField name="fieldMappings" type="object">
+      AI-generated field mappings (available after payload step)
+    </ResponseField>
+    
+    <ResponseField name="coverage" type="object">
+      Field coverage statistics
+      
+      <ResponseField name="totalFields" type="number">
+        Total number of required fields
+      </ResponseField>
+      
+      <ResponseField name="mappedFields" type="number">
+        Number of successfully mapped fields
+      </ResponseField>
+      
+      <ResponseField name="coveragePercentage" type="number">
+        Percentage of fields mapped (0-100)
+      </ResponseField>
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="nextStep" type="string">
+  The next step in the configuration process
+</ResponseField>
+
+<ResponseField name="message" type="string">
+  Human-readable status message
+</ResponseField>
+
+## Examples
+
+<CodeGroup>
+
+```bash Set Country
+curl -X PUT 'https://api.complyance.io/modes-manager/integration/INT_123/progress' \
+  -H 'Authorization: Bearer YOUR_JWT_TOKEN' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "body": {
+      "step": "country",
+      "data": { "country": "SA" }
+    }
+  }'
+```
+
+```bash Set Document Type
+curl -X PUT 'https://api.complyance.io/modes-manager/integration/INT_123/progress' \
+  -H 'Authorization: Bearer YOUR_JWT_TOKEN' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "body": {
+      "step": "documentType",
+      "data": { "documentType": "tax_invoice" }
+    }
+  }'
+```
+
+```bash Upload Sample Data
+curl -X PUT 'https://api.complyance.io/modes-manager/integration/INT_123/progress' \
+  -H 'Authorization: Bearer YOUR_JWT_TOKEN' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "body": {
+      "step": "payload",
+      "data": {
+        "payload": {
+          "invoice_number": "INV-001",
+          "invoice_date": "2024-01-15",
+          "seller_name": "Company LLC",
+          "buyer_name": "Customer Corp",
+          "total_amount": 1150.00
+        }
+      }
+    }
+  }'
+```
+
+```bash Complete Integration
+curl -X PUT 'https://api.complyance.io/modes-manager/integration/INT_123/progress' \
+  -H 'Authorization: Bearer YOUR_JWT_TOKEN' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "body": {
+      "step": "complete",
+      "data": { "status": "active" }
+    }
+  }'
+```
+
+</CodeGroup>
+
+## Response Examples
+
+<CodeGroup>
+
+```json Country Set Response
+{
+  "success": true,
+  "integration": {
+    "integrationId": "INT_123",
+    "currentStep": "documentType",
+    "country": "SA",
+    "status": "draft",
+    "createdAt": "2024-01-15T10:30:00Z",
+    "updatedAt": "2024-01-15T10:35:00Z"
+  },
+  "nextStep": "documentType",
+  "message": "Country set to Saudi Arabia. Please select document type."
+}
+```
+
+```json Document Type Set Response  
+{
+  "success": true,
+  "integration": {
+    "integrationId": "INT_123", 
+    "currentStep": "payload",
+    "country": "SA",
+    "documentType": "tax_invoice",
+    "status": "draft",
+    "requirements": {
+      "totalFields": 42,
+      "coreFields": 37,
+      "countrySpecificFields": 5
+    }
+  },
+  "nextStep": "payload",
+  "message": "Document type set to tax invoice. Please upload sample data for field mapping."
+}
+```
+
+```json Payload Uploaded Response
+{
+  "success": true,
+  "integration": {
+    "integrationId": "INT_123",
+    "currentStep": "review", 
+    "country": "SA",
+    "documentType": "tax_invoice",
+    "status": "mapping",
+    "fieldMappings": {
+      "header.documentId": "invoice_number",
+      "header.issueDate": "invoice_date",
+      "parties.seller.name": "seller_name",
+      "parties.buyer.name": "buyer_name",
+      "legalMonetaryTotal.payableAmount": "total_amount"
+    },
+    "coverage": {
+      "totalFields": 42,
+      "mappedFields": 38,
+      "coveragePercentage": 90.5
+    }
+  },
+  "nextStep": "review",
+  "message": "Sample data processed. AI mapped 38/42 fields (90.5% coverage). Review mappings before completing."
+}
+```
+
+```json Integration Completed Response
+{
+  "success": true,
+  "integration": {
+    "integrationId": "INT_123",
+    "currentStep": "complete",
+    "country": "SA", 
+    "documentType": "tax_invoice",
+    "status": "active",
+    "fieldMappings": {
+      "header.documentId": "invoice_number",
+      "header.issueDate": "invoice_date"
+    },
+    "coverage": {
+      "totalFields": 42,
+      "mappedFields": 42,
+      "coveragePercentage": 100
+    },
+    "templateId": "TMPL_456"
+  },
+  "nextStep": null,
+  "message": "Integration completed successfully. Ready to process documents."
+}
+```
+
+</CodeGroup>
+
+## Configuration Steps
+
+### Step 1: Country Selection
+
+<Tabs>
+  <Tab title="Saudi Arabia">
+    ```json
+    {
+      "step": "country",
+      "data": { "country": "SA" }
+    }
+    ```
+    
+    **Requirements**: 42 total fields (37 GETS + 5 ZATCA-specific)
+    **Format**: XML (UBL 2.1) for ZATCA submission
+    **Special**: QR code generation, Arabic language support
+  </Tab>
+  
+  <Tab title="Malaysia">
+    ```json
+    {
+      "step": "country", 
+      "data": { "country": "MY" }
+    }
+    ```
+    
+    **Requirements**: GETS core fields
+    **Format**: JSON for MyInvois submission
+    **Special**: Malaysian tax ID validation, MYR currency
+  </Tab>
+</Tabs>
+
+### Step 2: Document Type Selection
+
+<Tabs>
+  <Tab title="Tax Invoice">
+    ```json
+    {
+      "step": "documentType",
+      "data": { "documentType": "tax_invoice" }
+    }
+    ```
+    
+    **Purpose**: Standard commercial invoices for B2B and B2C transactions
+    **Fields**: All core fields required, positive amounts
+  </Tab>
+  
+  <Tab title="Credit Note">
+    ```json
+    {
+      "step": "documentType",
+      "data": { "documentType": "credit_note" }
+    }
+    ```
+    
+    **Purpose**: Refunds, returns, and downward adjustments
+    **Fields**: Must reference original invoice, typically negative amounts
+  </Tab>
+  
+  <Tab title="Debit Note">
+    ```json
+    {
+      "step": "documentType", 
+      "data": { "documentType": "debit_note" }
+    }
+    ```
+    
+    **Purpose**: Additional charges and upward adjustments
+    **Fields**: References original invoice, positive amounts for additional charges
+  </Tab>
+</Tabs>
+
+### Step 3: Sample Data Upload
+
+Upload representative data from your system for AI field mapping:
+
+<AccordionGroup>
+  <Accordion title="Data Requirements">
+    - **Complete Structure**: Include all fields your system generates
+    - **Representative Values**: Use real (but anonymized) sample data
+    - **Proper Types**: Numbers as numbers, dates as dates, booleans as booleans
+    - **Nested Objects**: Maintain your system's natural data hierarchy
+  </Accordion>
+  
+  <Accordion title="Best Practices">
+    - Include at least 2-3 line items for array mapping
+    - Provide complete seller and buyer information
+    - Include all tax calculation fields
+    - Use descriptive field names when possible
+  </Accordion>
+  
+  <Accordion title="Common Issues">
+    - **Missing Fields**: Include all mandatory fields for your document type
+    - **Wrong Types**: Ensure numeric amounts are numbers, not strings
+    - **Incomplete Data**: Partial data leads to poor mapping accuracy
+  </Accordion>
+</AccordionGroup>
+
+### Step 4: Review & Complete
+
+After uploading sample data, review the AI-generated mappings and complete the integration:
+
+1. **Check Coverage**: Ensure high field coverage percentage (>95% recommended)
+2. **Review Mappings**: Verify critical fields are mapped correctly
+3. **Add Manual Mappings**: Add any missing or incorrect mappings
+4. **Test Integration**: Upload test documents to validate mapping accuracy
+
+## Error Responses
+
+<CodeGroup>
+
+```json Invalid Step
+{
+  "success": false,
+  "error": {
+    "code": "INVALID_STEP",
+    "message": "Invalid step 'invalidStep'. Valid steps are: country, documentType, payload, complete"
+  }
+}
+```
+
+```json Step Order Error
+{
+  "success": false,
+  "error": {
+    "code": "STEP_ORDER_ERROR", 
+    "message": "Cannot set documentType before setting country. Current step: country"
+  }
+}
+```
+
+```json Missing Data
+{
+  "success": false,
+  "error": {
+    "code": "MISSING_DATA",
+    "message": "Data object is required for step 'country'"
+  }
+}
+```
+
+```json Invalid Country
+{
+  "success": false,
+  "error": {
+    "code": "INVALID_COUNTRY",
+    "message": "Country 'XX' is not supported. Supported countries: SA, MY"
+  }
+}
+```
+
+</CodeGroup>
+
+## Integration States
+
+<CardGroup cols={2}>
+  <Card title="draft" icon="file-pen">
+    **Initial state** - Integration created but not yet configured
+  </Card>
+  <Card title="mapping" icon="brain">
+    **AI Processing** - Sample data uploaded, AI generating field mappings
+  </Card>
+  <Card title="active" icon="check-circle">
+    **Ready for use** - Integration configured and ready to process documents
+  </Card>
+  <Card title="error" icon="x-circle">
+    **Error state** - Configuration failed, requires attention
+  </Card>
+</CardGroup>
+
+## Next Steps
+
+After completing integration setup:
+
+<CardGroup cols={2}>
+  <Card
+    title="Process Documents"
+    icon="gears"
+    href="/api-reference/sdk/unify-api"
+  >
+    Use your integration to process real documents
+  </Card>
+  <Card
+    title="Get Template Data"
+    icon="table"
+    href="/api-reference/integrations/get-template-data"
+  >
+    View the complete field mapping template
+  </Card>
+  <Card
+    title="Manual Mapping"
+    icon="hand"
+    href="/api-reference/mapping/add-mapping"
+  >
+    Add custom field mappings as needed
+  </Card>
+  <Card
+    title="Validate Integration"
+    icon="shield-check"
+    href="/api-reference/integrations/validate"
+  >
+    Test your integration with sample documents
+  </Card>
+</CardGroup> 

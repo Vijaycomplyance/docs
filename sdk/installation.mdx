@@ -1,0 +1,517 @@
+---
+title: 'Java SDK Installation'
+description: 'Install and configure the Complyance Java SDK for enterprise integration'
+---
+
+## Overview
+
+The Complyance Java SDK provides a comprehensive, enterprise-ready solution for integrating tax compliance into your Java applications. It offers simplified APIs, automatic authentication handling, and built-in error management.
+
+<Info>
+The Java SDK is designed for enterprise ERP systems like SAP, Oracle, Microsoft Dynamics, and custom Java applications that need to generate compliant e-invoices.
+</Info>
+
+## Requirements
+
+<CardGroup cols={2}>
+  <Card title="Java Version" icon="coffee">
+    **Java 8 or higher**
+    
+    Compatible with Java 8, 11, 17, and 21
+  </Card>
+  <Card title="Build Tool" icon="hammer">
+    **Maven or Gradle**
+    
+    Support for both build systems
+  </Card>
+</CardGroup>
+
+## Installation
+
+### Maven
+
+Add the Complyance SDK dependency to your `pom.xml`:
+
+```xml pom.xml
+<dependencies>
+    <dependency>
+        <groupId>io.complyance</groupId>
+        <artifactId>complyance-java</artifactId>
+        <version>0.1.0-alpha</version>
+    </dependency>
+</dependencies>
+```
+
+### Gradle
+
+Add the dependency to your `build.gradle`:
+
+```gradle build.gradle
+dependencies {
+    implementation 'io.complyance:complyance-java:0.1.0-alpha'
+}
+```
+
+### Manual Installation
+
+If you prefer to build from source or use a local JAR:
+
+1. **Download** the SDK JAR from our releases
+2. **Add to classpath** in your project
+3. **Import** the SDK classes in your code
+
+```bash
+# Add to classpath (example)
+java -cp "complyance-java-0.1.0-alpha.jar:your-app.jar" com.yourcompany.App
+```
+
+## Initial Setup
+
+### 1. Import Required Classes
+
+```java
+import io.complyance.sdk.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+```
+
+### 2. Configure the SDK
+
+Create a configuration object with your API credentials:
+
+```java BasicConfiguration
+// Define your data source
+Source source = new Source(
+    SourceType.FIRST_PARTY, 
+    "your-erp-system-id", 
+    "Your ERP System Name", 
+    "1.0"
+);
+
+// Configure SDK with API key and environment
+SDKConfig config = new SDKConfig(
+    "ak_your_api_key_here",           // Your API key from dashboard
+    Environment.SANDBOX,              // SANDBOX or PRODUCTION
+    Arrays.asList(source)             // List of data sources
+);
+
+// Initialize the SDK
+GETSUnifySDK.configure(config);
+```
+
+<Warning>
+Replace `ak_your_api_key_here` with your actual API key from the [Complyance Dashboard](https://dashboard.complyance.io). Keep your API keys secure and never commit them to version control.
+</Warning>
+
+### 3. Environment Configuration
+
+Choose the appropriate environment for your use case:
+
+<Tabs>
+  <Tab title="Sandbox (Development)">
+    ```java
+    SDKConfig config = new SDKConfig(
+        "ak_test_your_sandbox_key",
+        Environment.SANDBOX,
+        Arrays.asList(source)
+    );
+    ```
+    
+    - **URL**: `https://api-sandbox.complyance.io`
+    - **Purpose**: Development and testing
+    - **Data**: Test data only, not submitted to tax authorities
+  </Tab>
+  
+  <Tab title="Production (Live)">
+    ```java
+    SDKConfig config = new SDKConfig(
+        "ak_live_your_production_key",
+        Environment.PRODUCTION,
+        Arrays.asList(source)
+    );
+    ```
+    
+    - **URL**: `https://api.complyance.io`
+    - **Purpose**: Live production environment
+    - **Data**: Real data submitted to tax authorities
+  </Tab>
+</Tabs>
+
+## Quick Test
+
+Verify your installation with this simple test:
+
+```java TestSDK.java
+package com.yourcompany.test;
+
+import io.complyance.sdk.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+
+public class TestSDK {
+    public static void main(String[] args) {
+        try {
+            // Configure SDK
+            Source source = new Source(
+                SourceType.FIRST_PARTY, 
+                "test-system", 
+                "Test System", 
+                "1.0"
+            );
+            
+            SDKConfig config = new SDKConfig(
+                "ak_your_api_key_here",
+                Environment.SANDBOX,
+                Arrays.asList(source)
+            );
+            
+            GETSUnifySDK.configure(config);
+            
+            System.out.println("✅ SDK configured successfully!");
+            System.out.println("Environment: " + config.getEnvironment());
+            System.out.println("Sources: " + config.getSources().size());
+            
+        } catch (SDKException e) {
+            System.err.println("❌ SDK Error: " + e.getMessage());
+            if (e.getErrorDetail() != null) {
+                System.err.println("   Code: " + e.getErrorDetail().getCode());
+                System.err.println("   Suggestion: " + e.getErrorDetail().getSuggestion());
+            }
+        } catch (Exception e) {
+            System.err.println("❌ Unexpected error: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+}
+```
+
+Expected output:
+```
+✅ SDK configured successfully!
+Environment: SANDBOX
+Sources: 1
+```
+
+## Complete Example
+
+Here's a complete example based on the provided demo code, showing how to process invoice data:
+
+<CodeGroup>
+
+```java UnifyExample.java
+package com.yourcompany.compliance;
+
+import io.complyance.sdk.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+
+public class UnifyExample {
+    public static void main(String[] args) {
+        try {
+            // 1. Configure SDK
+            Source source = new Source(
+                SourceType.FIRST_PARTY, 
+                "erp-001", 
+                "Demo ERP System", 
+                "1.0"
+            );
+            
+            SDKConfig config = new SDKConfig(
+                "ak_your_api_key_here",
+                Environment.SANDBOX,
+                Arrays.asList(source)
+            );
+            
+            GETSUnifySDK.configure(config);
+            System.out.println("✓ SDK Configured");
+
+            // 2. Create invoice payload
+            Map<String, Object> payload = createInvoicePayload();
+            System.out.println("✓ Payload created");
+
+            // 3. Process with Unify API
+            UnifyResponse response = GETSUnifySDK.pushToUnify(
+                "erp-001",                    // Source ID
+                DocumentType.TAX_INVOICE,     // Document type
+                "SA",                         // Country (Saudi Arabia)
+                Operation.SINGLE,             // Single document operation
+                Mode.DOCUMENTS,               // Document mode
+                Purpose.MAPPING,              // Mapping purpose
+                payload                       // Your invoice data
+            );
+
+            // 4. Handle response
+            System.out.println("Response Status: " + response.getStatus());
+            System.out.println("Message: " + response.getMessage());
+            
+            if (response.getStatus().equals("success")) {
+                System.out.println("✅ Invoice processed successfully!");
+                // Process the response data as needed
+            } else {
+                System.err.println("❌ Processing failed: " + response.getMessage());
+            }
+
+        } catch (SDKException e) {
+            System.err.println("❌ SDK Error: " + e.getMessage());
+            handleSDKError(e);
+        } catch (Exception e) {
+            System.err.println("❌ Unexpected error: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    private static Map<String, Object> createInvoicePayload() {
+        Map<String, Object> payload = new HashMap<>();
+
+        // Invoice header
+        Map<String, Object> invoiceHeader = new HashMap<>();
+        invoiceHeader.put("invoiceNumber", "INV-20230512-78945");
+        invoiceHeader.put("invoiceDate", "2023-05-12T14:32:17.456Z");
+        invoiceHeader.put("documentType", "ZINV");
+        invoiceHeader.put("fiscalYear", 2023);
+        
+        Map<String, Object> currency = new HashMap<>();
+        currency.put("code", "USD");
+        currency.put("exchangeRate", 1.0);
+        invoiceHeader.put("currency", currency);
+        
+        payload.put("invoiceHeader", invoiceHeader);
+
+        // Business Partner
+        Map<String, Object> businessPartner = new HashMap<>();
+        businessPartner.put("id", "CUST001234");
+        businessPartner.put("name", "Acme Corporation");
+        businessPartner.put("taxId", "12-3456789");
+        payload.put("businessPartner", businessPartner);
+
+        // Line Items
+        Map<String, Object> lineItem = new HashMap<>();
+        lineItem.put("itemNumber", 10);
+        lineItem.put("materialNumber", "MAT-10025534");
+        lineItem.put("materialDescription", "Steel Pipe Fittings - 2 inch diameter");
+        lineItem.put("quantity", 150.00);
+        lineItem.put("unitPrice", 12.75);
+        lineItem.put("extendedPrice", 1912.50);
+        
+        payload.put("lineItems", Arrays.asList(lineItem));
+
+        // Summary
+        Map<String, Object> summary = new HashMap<>();
+        summary.put("subtotal", 3300.00);
+        summary.put("taxAmount", 272.25);
+        summary.put("totalDue", 3228.99);
+        payload.put("summary", summary);
+
+        return payload;
+    }
+
+    private static void handleSDKError(SDKException e) {
+        if (e.getErrorDetail() != null) {
+            System.err.println("   Code: " + e.getErrorDetail().getCode());
+            System.err.println("   Suggestion: " + e.getErrorDetail().getSuggestion());
+            
+            // Handle specific error types
+            switch (e.getErrorDetail().getCode()) {
+                case "AUTHENTICATION_ERROR":
+                    System.err.println("   💡 Check your API key in the dashboard");
+                    break;
+                case "VALIDATION_ERROR":
+                    System.err.println("   💡 Review your payload structure");
+                    break;
+                case "RATE_LIMIT_EXCEEDED":
+                    System.err.println("   💡 Implement retry logic with backoff");
+                    break;
+                default:
+                    System.err.println("   💡 Contact support for assistance");
+            }
+        }
+    }
+}
+```
+
+</CodeGroup>
+
+## Project Structure
+
+Organize your compliance integration following this recommended structure:
+
+```
+src/
+├── main/
+│   ├── java/
+│   │   └── com/yourcompany/
+│   │       ├── compliance/
+│   │       │   ├── config/
+│   │       │   │   ├── ComplyanceConfig.java
+│   │       │   │   └── SourceConfig.java
+│   │       │   ├── service/
+│   │       │   │   ├── InvoiceProcessor.java
+│   │       │   │   └── ComplianceService.java
+│   │       │   └── model/
+│   │       │       ├── Invoice.java
+│   │       │       └── TaxDetails.java
+│   │       └── Application.java
+│   └── resources/
+│       ├── application.properties
+│       └── compliance-config.json
+└── test/
+    └── java/
+        └── com/yourcompany/compliance/
+            ├── UnifyIntegrationTest.java
+            └── ComplianceServiceTest.java
+```
+
+## Configuration Best Practices
+
+### Environment Variables
+
+Store sensitive configuration in environment variables:
+
+```java ConfigurationManager.java
+public class ConfigurationManager {
+    public static SDKConfig getConfig() {
+        String apiKey = System.getenv("COMPLYANCE_API_KEY");
+        String environment = System.getenv("COMPLYANCE_ENV"); // SANDBOX or PRODUCTION
+        
+        if (apiKey == null || apiKey.isEmpty()) {
+            throw new IllegalStateException("COMPLYANCE_API_KEY environment variable is required");
+        }
+        
+        Environment env = "PRODUCTION".equals(environment) 
+            ? Environment.PRODUCTION 
+            : Environment.SANDBOX;
+            
+        Source source = new Source(
+            SourceType.FIRST_PARTY,
+            System.getenv("ERP_SYSTEM_ID"),
+            System.getenv("ERP_SYSTEM_NAME"),
+            "1.0"
+        );
+        
+        return new SDKConfig(apiKey, env, Arrays.asList(source));
+    }
+}
+```
+
+### Spring Boot Integration
+
+For Spring Boot applications:
+
+```java ComplyanceAutoConfiguration.java
+@Configuration
+@EnableConfigurationProperties(ComplyanceProperties.class)
+public class ComplyanceAutoConfiguration {
+    
+    @Bean
+    @ConditionalOnMissingBean
+    public SDKConfig sdkConfig(ComplyanceProperties properties) {
+        Source source = new Source(
+            SourceType.FIRST_PARTY,
+            properties.getSourceId(),
+            properties.getSourceName(),
+            properties.getSourceVersion()
+        );
+        
+        return new SDKConfig(
+            properties.getApiKey(),
+            properties.getEnvironment(),
+            Arrays.asList(source)
+        );
+    }
+    
+    @Bean
+    public ComplyanceService complyanceService(SDKConfig config) {
+        GETSUnifySDK.configure(config);
+        return new ComplyanceService();
+    }
+}
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card
+    title="SDK Configuration"
+    icon="gear"
+    href="/sdk/configuration"
+  >
+    Learn advanced configuration options and best practices
+  </Card>
+  <Card
+    title="Usage Examples"
+    icon="code"
+    href="/sdk/examples"
+  >
+    Explore real-world integration examples and patterns
+  </Card>
+  <Card
+    title="Error Handling"
+    icon="shield-exclamation"
+    href="/sdk/error-handling"
+  >
+    Implement robust error handling and retry logic
+  </Card>
+  <Card
+    title="API Reference"
+    icon="book"
+    href="/api-reference"
+  >
+    Explore the complete REST API documentation
+  </Card>
+</CardGroup>
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Compilation Errors">
+    **Issue**: SDK classes not found during compilation
+    
+    **Solutions**:
+    - Verify the dependency is correctly added to your `pom.xml` or `build.gradle`
+    - Ensure you're using the correct version (`0.1.0-alpha`)
+    - Refresh your IDE's project dependencies
+    - Check that your Java version is 8 or higher
+  </Accordion>
+
+  <Accordion title="Authentication Failures">
+    **Issue**: `AUTHENTICATION_ERROR` when calling SDK methods
+    
+    **Solutions**:
+    - Verify your API key is correct and active
+    - Ensure you're using the right environment (SANDBOX vs PRODUCTION)
+    - Check that your API key hasn't expired
+    - Confirm your workspace has the necessary permissions
+  </Accordion>
+
+  <Accordion title="Maven/Gradle Issues">
+    **Issue**: Dependency resolution failures
+    
+    **Solutions**:
+    - Ensure you have access to the Complyance repository
+    - Check your network connectivity and proxy settings
+    - Try clearing your local Maven cache (`~/.m2/repository`)
+    - Contact support for repository access credentials
+  </Accordion>
+</AccordionGroup>
+
+## Support
+
+<CardGroup cols={2}>
+  <Card
+    title="Technical Support"
+    icon="life-ring"
+    href="mailto:support@complyance.io"
+  >
+    Get help with SDK installation and configuration issues
+  </Card>
+  <Card
+    title="Developer Community"
+    icon="users"
+    href="https://slack.complyance.io"
+  >
+    Join other developers using the Complyance SDK
+  </Card>
+</CardGroup> 

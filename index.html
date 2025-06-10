@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Complyance API Documentation</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #ffffff;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 20px 0;
+            border-bottom: 1px solid #e1e5e9;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #1a1a1a;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 1.1rem;
+            color: #666;
+        }
+        
+        .nav {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-bottom: 40px;
+            flex-wrap: wrap;
+        }
+        
+        .nav-item {
+            padding: 10px 20px;
+            border: 1px solid #e1e5e9;
+            border-radius: 8px;
+            background: #f8f9fa;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .nav-item:hover,
+        .nav-item.active {
+            background: #007bff;
+            color: white;
+            border-color: #007bff;
+        }
+        
+        .content {
+            display: none;
+        }
+        
+        .content.active {
+            display: block;
+        }
+        
+        .section-title {
+            font-size: 1.8rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #1a1a1a;
+        }
+        
+        .table-container {
+            overflow-x: auto;
+            margin-bottom: 30px;
+            border: 1px solid #e1e5e9;
+            border-radius: 8px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+        
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #e1e5e9;
+        }
+        
+        th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+            color: #1a1a1a;
+        }
+        
+        tr:hover {
+            background-color: #f8f9fa;
+        }
+        
+        .required {
+            color: #28a745;
+            font-weight: bold;
+        }
+        
+        .optional {
+            color: #6c757d;
+        }
+        
+        code {
+            background: #f1f3f4;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 0.9em;
+        }
+        
+        .example-box {
+            background: #f8f9fa;
+            border: 1px solid #e1e5e9;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .example-title {
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #1a1a1a;
+        }
+        
+        pre {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 6px;
+            overflow-x: auto;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 0.9em;
+        }
+        
+        .step {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #e1e5e9;
+            border-radius: 8px;
+            background: white;
+        }
+        
+        .step-number {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            background: #007bff;
+            color: white;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 30px;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        
+        .step-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #1a1a1a;
+        }
+        
+        .country-section {
+            margin: 30px 0;
+            padding: 20px;
+            border: 1px solid #e1e5e9;
+            border-radius: 8px;
+            background: #f8f9fa;
+        }
+        
+        .country-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #1a1a1a;
+        }
+        
+        ul {
+            margin-left: 20px;
+        }
+        
+        li {
+            margin-bottom: 5px;
+        }
+        
+        @media (max-width: 768px) {
+            .nav {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .nav-item {
+                width: 100%;
+                max-width: 300px;
+                text-align: center;
+            }
+            
+            table {
+                font-size: 0.9em;
+            }
+            
+            th, td {
+                padding: 8px 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Complyance API Documentation</h1>
+            <p>Simple reference for integrating global e-invoicing into your application</p>
+        </div>
+
+        <div class="nav">
+            <div class="nav-item active" onclick="showContent('fields')">Invoice Fields</div>
+            <div class="nav-item" onclick="showContent('sdk')">Java SDK Guide</div>
+            <div class="nav-item" onclick="showContent('examples')">Examples</div>
+        </div>
+
+        <!-- Invoice Fields Content -->
+        <div id="fields" class="content active">
+            <div class="section-title">Invoice Fields Reference</div>
+            <p style="margin-bottom: 20px;">This reference shows all the fields you can include when sending invoice data to our API. Each field has a clear description and example to help you understand what information to provide.</p>
+
+            <h3 style="margin: 30px 0 15px 0; color: #1a1a1a;">Document Information</h3>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Field Name</th>
+                            <th>Type</th>
+                            <th>Required</th>
+                            <th>Description</th>
+                            <th>Example</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Document Id</td>
+                            <td>string</td>
+                            <td><span class="required">✅</span></td>
+                            <td>The unique identifier for your invoice. This should be unique for each invoice you send.</td>
+                            <td><code>INV-2024-001234</code></td>
+                        </tr>
+                        <tr>
+                            <td>Document Type</td>
+                            <td>string</td>
+                            <td><span class="required">✅</span></td>
+                            <td>The type of document you're sending. Use the appropriate code for your document type.</td>
+                            <td><code>tax_invoice</code></td>
+                        </tr>
+                        <tr>
+                            <td>Issue Date</td>
+                            <td>string</td>
+                            <td><span class="required">✅</span></td>
+                            <td>The date when the invoice was issued. Use YYYY-MM-DD format.</td>
+                            <td><code>2024-01-15</code></td>
+                        </tr>
+                        <tr>
+                            <td>Due Date</td>
+                            <td>string</td>
+                            <td><span class="optional">⚪</span></td>
+                            <td>The date when payment is due. Use YYYY-MM-DD format.</td>
+                            <td><code>2024-02-15</code></td>
+                        </tr>
+                        <tr>
+                            <td>Currency</td>
+                            <td>string</td>
+                            <td><span class="required">✅</span></td>
+                            <td>The currency code for all amounts in the invoice. Use 3-letter ISO currency codes.</td>
+                            <td><code>USD</code>, <code>EUR</code>, <code>SAR</code></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3 style="margin: 30px 0 15px 0; color: #1a1a1a;">Seller Information</h3>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Field Name</th>
+                            <th>Type</th>
+                            <th>Required</th>
+                            <th>Description</th>
+                            <th>Example</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Seller Name</td>
+                            <td>string</td>
+                            <td><span class="required">✅</span></td>
+                            <td>The legal name of your business or organization issuing the invoice.</td>
+                            <td><code>Acme Corporation Ltd</code></td>
+                        </tr>
+                        <tr>
+                            <td>Seller VAT Number</td>
+                            <td>string</td>
+                            <td><span class="required">✅</span></td>
+                            <td>Your business VAT registration number. Format varies by country.</td>
+                            <td><code>GB123456789</code> (UK), <code>311111111101114</code> (Saudi)</td>
+                        </tr>
+                        <tr>
+                            <td>Seller Address</td>
+                            <td>object</td>
+                            <td><span class="required">✅</span></td>
+                            <td>Complete address information for your business.</td>
+                            <td><code>{"street": "123 Business St", "city": "London", "postal_code": "SW1A 1AA", "country": "GB"}</code></td>
+                        </tr>
+                        <tr>
+                            <td>Seller Email</td>
+                            <td>string</td>
+                            <td><span class="optional">⚪</span></td>
+                            <td>Your business contact email address.</td>
+                            <td><code>billing@acme.com</code></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3 style="margin: 30px 0 15px 0; color: #1a1a1a;">Buyer Information</h3>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Field Name</th>
+                            <th>Type</th>
+                            <th>Required</th>
+                            <th>Description</th>
+                            <th>Example</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Buyer Name</td>
+                            <td>string</td>
+                            <td><span class="required">✅</span></td>
+                            <td>The name of the customer you're invoicing.</td>
+                            <td><code>Customer Company Inc</code></td>
+                        </tr>
+                        <tr>
+                            <td>Buyer VAT Number</td>
+                            <td>string</td>
+                            <td><span class="optional">⚪</span></td>
+                            <td>The customer's VAT registration number, if they have one.</td>
+                            <td><code>GB987654321</code></td>
+                        </tr>
+                        <tr>
+                            <td>Buyer Address</td>
+                            <td>object</td>
+                            <td><span class="required">✅</span></td>
+                            <td>The customer's billing address information.</td>
+                            <td><code>{"street": "456 Customer Ave", "city": "Manchester", "postal_code": "M1 1AA", "country": "GB"}</code></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3 style="margin: 30px 0 15px 0; color: #1a1a1a;">Line Items</h3>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Field Name</th>
+                            <th>Type</th>
+                            <th>Required</th>
+                            <th>Description</th>
+                            <th>Example</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Item Description</td>
+                            <td>string</td>
+                            <td><span class="required">✅</span></td>
+                            <td>Clear description of the product or service being sold.</td>
+                            <td><code>Professional Consulting Services</code></td>
+                        </tr>
+                        <tr>
+                            <td>Quantity</td>
+                            <td>number</td>
+                            <td><span class="required">✅</span></td>
+                            <td>How many units of this item are being sold.</td>
+                            <td><code>5</code></td>
+                        </tr>
+                        <tr>
+                            <td>Unit Price</td>
+                            <td>number</td>
+                            <td><span class="required">✅</span></td>
+                            <td>The price per unit before tax.</td>
+                            <td><code>299.99</code></td>
+                        </tr>
+                        <tr>
+                            <td>Tax Rate</td>
+                            <td>number</td>
+                            <td><span class="required">✅</span></td>
+                            <td>The tax percentage applied to this item.</td>
+                            <td><code>20</code> (for 20% VAT)</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3 style="margin: 30px 0 15px 0; color: #1a1a1a;">Totals</h3>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Field Name</th>
+                            <th>Type</th>
+                            <th>Required</th>
+                            <th>Description</th>
+                            <th>Example</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Subtotal</td>
+                            <td>number</td>
+                            <td><span class="required">✅</span></td>
+                            <td>Total amount before tax is added.</td>
+                            <td><code>1000.00</code></td>
+                        </tr>
+                        <tr>
+                            <td>Tax Amount</td>
+                            <td>number</td>
+                            <td><span class="required">✅</span></td>
+                            <td>Total tax amount for the entire invoice.</td>
+                            <td><code>200.00</code></td>
+                        </tr>
+                        <tr>
+                            <td>Total Amount</td>
+                            <td>number</td>
+                            <td><span class="required">✅</span></td>
+                            <td>Final amount the customer needs to pay including tax.</td>
+                            <td><code>1200.00</code></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="country-section">
+                <div class="country-title">Country-Specific Requirements</div>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-top: 15px;">
+                    <div>
+                        <strong>Saudi Arabia (ZATCA)</strong>
+                        <ul>
+                            <li>VAT Number must be 15 digits</li>
+                            <li>QR Code automatically generated</li>
+                            <li>Arabic translations supported</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <strong>Malaysia (MyInvois)</strong>
+                        <ul>
+                            <li>GST Number required for businesses</li>
+                            <li>Ringgit (MYR) currency for domestic</li>
+                            <li>Automatic LHDN portal submission</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <strong>United Kingdom</strong>
+                        <ul>
+                            <li>VAT Number format: GB + 9 digits</li>
+                            <li>20% standard VAT rate</li>
+                            <li>HMRC Making Tax Digital compliance</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SDK Guide Content -->
+        <div id="sdk" class="content">
+            <div class="section-title">Java SDK Implementation Guide</div>
+            <p style="margin-bottom: 20px;">Step-by-step guide to integrate Complyance invoicing into your Java application</p>
+
+            <div class="step">
+                <div class="step-title"><span class="step-number">1</span>Add SDK to Your Project</div>
+                <p>Add the SDK dependency to your project:</p>
+                <div class="example-box">
+                    <div class="example-title">Maven</div>
+                    <pre>&lt;dependency&gt;
+    &lt;groupId&gt;io.complyance&lt;/groupId&gt;
+    &lt;artifactId&gt;complyance-java-sdk&lt;/artifactId&gt;
+    &lt;version&gt;1.0.0&lt;/version&gt;
+&lt;/dependency&gt;</pre>
+                </div>
+                <div class="example-box">
+                    <div class="example-title">Gradle</div>
+                    <pre>implementation 'io.complyance:complyance-java-sdk:1.0.0'</pre>
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="step-title"><span class="step-number">2</span>Configure the SDK</div>
+                <p>Initialize the SDK with your API key:</p>
+                <div class="example-box">
+                    <pre>import io.complyance.sdk.*;
+
+// Configure your source information
+Source source = new Source(
+    SourceType.FIRST_PARTY,
+    "your-system-id",
+    "Your System Name",
+    "1.0"
+);
+
+// Initialize with your API key
+SDKConfig config = new SDKConfig(
+    "your-api-key-here",
+    Environment.SANDBOX,  // Use PRODUCTION for live
+    Arrays.asList(source)
+);
+
+GETSUnifySDK.configure(config);</pre>
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="step-title"><span class="step-number">3</span>Prepare Your Invoice Data</div>
+                <p>Create a Map with your invoice information:</p>
+                <div class="example-box">
+                    <pre>Map&lt;String, Object&gt; invoice = new HashMap&lt;&gt;();
+
+// Basic invoice information
+Map&lt;String, Object&gt; header = new HashMap&lt;&gt;();
+header.put("invoiceNumber", "INV-2024-001");
+header.put("invoiceDate", "2024-01-15T10:30:00Z");
+header.put("documentType", "tax_invoice");
+header.put("currency", "USD");
+invoice.put("header", header);
+
+// Seller information (your business)
+Map&lt;String, Object&gt; seller = new HashMap&lt;&gt;();
+seller.put("name", "Your Business Name");
+seller.put("vatNumber", "Your-VAT-Number");
+seller.put("address", "Your Business Address");
+invoice.put("seller", seller);
+
+// Customer information
+Map&lt;String, Object&gt; buyer = new HashMap&lt;&gt;();
+buyer.put("name", "Customer Name");
+buyer.put("address", "Customer Address");
+invoice.put("buyer", buyer);
+
+// Invoice line items
+List&lt;Map&lt;String, Object&gt;&gt; items = new ArrayList&lt;&gt;();
+Map&lt;String, Object&gt; item = new HashMap&lt;&gt;();
+item.put("description", "Professional Services");
+item.put("quantity", 1);
+item.put("unitPrice", 1000.00);
+item.put("taxRate", 20);
+items.add(item);
+invoice.put("items", items);</pre>
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="step-title"><span class="step-number">4</span>Send Your Invoice</div>
+                <p>Submit your invoice to the tax authorities:</p>
+                <div class="example-box">
+                    <pre>try {
+    UnifyResponse response = GETSUnifySDK.pushToUnify(
+        "your-system-id",           // Your source ID
+        DocumentType.TAX_INVOICE,   // Document type
+        "GB",                       // Country code (GB, SA, MY, etc.)
+        Operation.SINGLE,           // Single document
+        Mode.DOCUMENTS,             // Processing mode
+        Purpose.PRODUCTION,         // Send to tax authority
+        invoice                     // Your invoice data
+    );
+    
+    if (response.getStatus().equals("success")) {
+        String documentId = response.getData().get("documentId").toString();
+        System.out.println("Invoice submitted successfully! ID: " + documentId);
+    } else {
+        System.out.println("Error: " + response.getMessage());
+    }
+    
+} catch (SDKException e) {
+    System.out.println("SDK Error: " + e.getMessage());
+}</pre>
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="step-title"><span class="step-number">5</span>Test Before Going Live</div>
+                <p>Always test your integration first:</p>
+                <div class="example-box">
+                    <pre>// Test your invoice before sending to tax authority
+UnifyResponse testResponse = GETSUnifySDK.pushToUnify(
+    "your-system-id",
+    DocumentType.TAX_INVOICE,
+    "GB",
+    Operation.SINGLE,
+    Mode.DOCUMENTS,
+    Purpose.VALIDATION,      // Test mode - won't send to tax authority
+    invoice
+);
+
+if (testResponse.getStatus().equals("success")) {
+    System.out.println("Invoice is valid and ready to send!");
+} else {
+    System.out.println("Invoice has issues: " + testResponse.getMessage());
+}</pre>
+                </div>
+            </div>
+
+            <div class="example-box" style="margin-top: 30px;">
+                <div class="example-title">Need Help?</div>
+                <p>📧 <strong>Email</strong>: support@complyance.io<br>
+                📖 <strong>Documentation</strong>: https://docs.complyance.io<br>
+                🎛️ <strong>Dashboard</strong>: https://dashboard.complyance.io</p>
+                <p style="margin-top: 10px;">Our integration specialists can help you get your integration working smoothly!</p>
+            </div>
+        </div>
+
+        <!-- Examples Content -->
+        <div id="examples" class="content">
+            <div class="section-title">Complete Examples</div>
+            
+            <div class="example-box">
+                <div class="example-title">Complete Invoice JSON Example</div>
+                <pre>{
+  "document_id": "INV-2024-001234",
+  "document_type": "tax_invoice",
+  "issue_date": "2024-01-15",
+  "due_date": "2024-02-15",
+  "currency": "USD",
+  "seller": {
+    "name": "Acme Corporation Ltd",
+    "vat_number": "GB123456789",
+    "address": {
+      "street": "123 Business Street",
+      "city": "London",
+      "postal_code": "SW1A 1AA",
+      "country": "GB"
+    },
+    "email": "billing@acme.com"
+  },
+  "buyer": {
+    "name": "Customer Company Inc",
+    "vat_number": "GB987654321",
+    "address": {
+      "street": "456 Customer Avenue",
+      "city": "Manchester",
+      "postal_code": "M1 1AA",
+      "country": "GB"
+    }
+  },
+  "line_items": [
+    {
+      "description": "Professional Consulting Services",
+      "quantity": 1,
+      "unit_price": 1000.00,
+      "tax_rate": 20,
+      "line_total": 1000.00
+    }
+  ],
+  "subtotal": 1000.00,
+  "tax_amount": 200.00,
+  "total_amount": 1200.00,
+  "payment_terms": "Net 30 days",
+  "notes": "Thank you for your business!"
+}</pre>
+            </div>
+
+            <div class="example-box">
+                <div class="example-title">Complete Java Implementation</div>
+                <pre>public class InvoiceExample {
+    public static void main(String[] args) {
+        try {
+            // 1. Configure SDK
+            Source source = new Source(SourceType.FIRST_PARTY, "my-app", "My App", "1.0");
+            SDKConfig config = new SDKConfig("your-api-key", Environment.SANDBOX, Arrays.asList(source));
+            GETSUnifySDK.configure(config);
+            
+            // 2. Create invoice
+            Map&lt;String, Object&gt; invoice = createInvoice();
+            
+            // 3. Send invoice
+            UnifyResponse response = GETSUnifySDK.pushToUnify(
+                "my-app",
+                DocumentType.TAX_INVOICE,
+                "GB",
+                Operation.SINGLE,
+                Mode.DOCUMENTS,
+                Purpose.PRODUCTION,
+                invoice
+            );
+            
+            // 4. Handle response
+            if (response.getStatus().equals("success")) {
+                System.out.println("Success! Document ID: " + response.getData().get("documentId"));
+            } else {
+                System.out.println("Error: " + response.getMessage());
+            }
+            
+        } catch (Exception e) {
+            System.out.println("Error: " + e.getMessage());
+        }
+    }
+    
+    private static Map&lt;String, Object&gt; createInvoice() {
+        // Create your invoice data structure here
+        // (refer to the step-by-step guide above)
+        return invoice;
+    }
+}</pre>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showContent(contentId) {
+            // Hide all content
+            const contents = document.querySelectorAll('.content');
+            contents.forEach(content => content.classList.remove('active'));
+            
+            // Remove active from all nav items
+            const navItems = document.querySelectorAll('.nav-item');
+            navItems.forEach(item => item.classList.remove('active'));
+            
+            // Show selected content
+            document.getElementById(contentId).classList.add('active');
+            
+            // Add active to clicked nav item
+            event.target.classList.add('active');
+        }
+    </script>
+</body>
+</html> 

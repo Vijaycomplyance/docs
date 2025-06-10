@@ -1,0 +1,567 @@
+---
+title: 'Document Types'
+description: 'Understand different document types and their compliance requirements'
+---
+
+## Overview
+
+The Complyance platform supports various document types for tax compliance across different countries. Each document type has specific requirements, field mappings, and validation rules that ensure compliance with local tax authorities.
+
+<Info>
+Understanding document types is crucial for proper integration setup, as each type may require different field mappings and validation rules.
+</Info>
+
+## Supported Document Types
+
+<CardGroup cols={3}>
+  <Card title="Tax Invoice" icon="file-invoice">
+    **Primary billing document**
+    
+    Standard commercial invoice with VAT/tax details for B2B and B2C transactions.
+  </Card>
+  <Card title="Credit Note" icon="file-minus">
+    **Refund/adjustment document**
+    
+    Document reducing the amount owed by buyer, typically for returns or corrections.
+  </Card>
+  <Card title="Debit Note" icon="file-plus">
+    **Additional charge document**
+    
+    Document increasing the amount owed by buyer, typically for additional charges.
+  </Card>
+</CardGroup>
+
+## Tax Invoice
+
+The most common document type for commercial transactions.
+
+### Features
+- **Complete transaction details** with seller, buyer, and item information
+- **Tax calculations** with detailed VAT/sales tax breakdown
+- **Payment terms** and due date information
+- **Compliance validation** against local tax authority requirements
+
+### Field Requirements
+
+<Tabs>
+  <Tab title="Core Fields">
+    **Essential fields for all tax invoices**
+    
+    | Category | Required Fields | Purpose |
+    |----------|----------------|---------|
+    | **Header** | Document ID, Issue Date, Currency | Basic invoice identification |
+    | **Seller** | Name, VAT ID, Address | Supplier identification and tax registration |
+    | **Buyer** | Name, Tax ID, Address | Customer identification for tax purposes |
+    | **Items** | Description, Quantity, Price, Tax | Product/service details with tax calculation |
+    | **Totals** | Subtotal, Tax Amount, Total | Financial summary and tax breakdown |
+  </Tab>
+  
+  <Tab title="Saudi Arabia">
+    **ZATCA-specific requirements**
+    
+    | Field | Purpose | Example Value |
+    |-------|---------|---------------|
+    | `sa_isExport` | Export transaction flag | `true` for exports |
+    | `sa_isNominal` | Small transaction (< 1000 SAR) | `true` for B2C < 1000 SAR |
+    | `sa_isSelfBilled` | Self-billed invoice | `false` for standard invoices |
+    | `sa_isSummary` | Summary invoice | `true` for consolidated billing |
+    | `sa_isThirdPArty` | Third party transaction | `false` for direct transactions |
+    
+    <Note>
+    Saudi Arabia requires QR codes and specific XML format for ZATCA submission.
+    </Note>
+  </Tab>
+  
+  <Tab title="Malaysia">
+    **MyInvois requirements**
+    
+    | Field | Purpose | Example Value |
+    |-------|---------|---------------|
+    | `header.documentType` | Invoice type code | `01` for invoice |
+    | `parties.buyer.identifications.id` | Buyer tax number | Malaysian tax registration |
+    | `items.item.classifiedTaxCategory.id` | Tax type | `TX-01` for standard rate |
+    
+    <Info>
+    Malaysia uses the standard GETS field set with specific value requirements for MyInvois compliance.
+    </Info>
+  </Tab>
+</Tabs>
+
+### Use Cases
+
+<AccordionGroup>
+  <Accordion title="B2B Commercial Sales">
+    **Scenario**: Business selling goods/services to another business
+    
+    **Requirements**:
+    - Complete seller and buyer tax registration details
+    - Detailed item descriptions with tax categories
+    - Payment terms and due dates
+    - Country-specific compliance flags
+    
+    **Example**:
+    ```json
+    {
+      "documentType": "tax_invoice",
+      "parties": {
+        "seller": {
+          "name": "Manufacturing Corp LLC",
+          "identifications": [{"id": "310123456700003", "schemeId": "VAT"}]
+        },
+        "buyer": {
+          "name": "Retail Chain Ltd",
+          "identifications": [{"id": "310987654300003", "schemeId": "VAT"}]
+        }
+      }
+    }
+    ```
+  </Accordion>
+
+  <Accordion title="B2C Retail Sales">
+    **Scenario**: Business selling directly to consumers
+    
+    **Requirements**:
+    - Simplified buyer information (may not require tax ID)
+    - Clear product descriptions for consumers
+    - Appropriate tax calculations
+    - Consumer protection compliance
+    
+    **Example**:
+    ```json
+    {
+      "documentType": "tax_invoice",
+      "parties": {
+        "seller": {
+          "name": "Retail Store LLC",
+          "identifications": [{"id": "310123456700003", "schemeId": "VAT"}]
+        },
+        "buyer": {
+          "name": "Individual Customer"
+        }
+      },
+      "sa_isNominal": true
+    }
+    ```
+  </Accordion>
+
+  <Accordion title="Export Transactions">
+    **Scenario**: Cross-border sales with export considerations
+    
+    **Requirements**:
+    - Export documentation references
+    - Currency and exchange rate information
+    - Zero-rated or exempt tax treatment
+    - Export-specific compliance flags
+    
+    **Example**:
+    ```json
+    {
+      "documentType": "tax_invoice",
+      "sa_isExport": true,
+      "items": [{
+        "classifiedTaxCategory": {
+          "id": "Z",
+          "percent": 0
+        }
+      }]
+    }
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Credit Note
+
+Used for refunds, returns, and invoice corrections.
+
+### Purpose
+- **Product returns** and refunds
+- **Invoice corrections** and adjustments
+- **Discount applications** after original invoice
+- **Service cancellations** and partial refunds
+
+### Key Characteristics
+
+<CardGroup cols={2}>
+  <Card title="Negative Amounts" icon="minus">
+    **Reduces customer debt**
+    
+    Credit notes typically have negative amounts that reduce the total amount owed by the customer.
+  </Card>
+  <Card title="Original Reference" icon="link">
+    **Links to original invoice**
+    
+    Must reference the original invoice number and may include specific line item references.
+  </Card>
+</CardGroup>
+
+### Field Considerations
+
+```json
+{
+  "header": {
+    "documentType": "credit_note",
+    "documentId": "CN-2024-001234",
+    "references": [{
+      "id": "INV-2024-001200",
+      "typeCode": "original_invoice"
+    }]
+  },
+  "legalMonetaryTotal": {
+    "payableAmount": -500.00  // Negative amount for credit
+  }
+}
+```
+
+## Debit Note
+
+Used for additional charges and invoice increases.
+
+### Purpose
+- **Additional services** provided after original invoice
+- **Shipping and handling** charges applied later
+- **Price adjustments** due to market changes
+- **Penalty fees** and interest charges
+
+### Key Characteristics
+
+<CardGroup cols={2}>
+  <Card title="Positive Amounts" icon="plus">
+    **Increases customer debt**
+    
+    Debit notes have positive amounts that increase the total amount owed by the customer.
+  </Card>
+  <Card title="Supplementary" icon="layers">
+    **Supplements original transaction**
+    
+    Adds to the original invoice rather than replacing it, often for unforeseen charges.
+  </Card>
+</CardGroup>
+
+### Field Considerations
+
+```json
+{
+  "header": {
+    "documentType": "debit_note", 
+    "documentId": "DN-2024-001234",
+    "references": [{
+      "id": "INV-2024-001200",
+      "typeCode": "original_invoice"
+    }]
+  },
+  "legalMonetaryTotal": {
+    "payableAmount": 150.00  // Additional amount owed
+  }
+}
+```
+
+## Country-Specific Requirements
+
+### Saudi Arabia (ZATCA)
+
+<Tabs>
+  <Tab title="Tax Invoice">
+    **Standard B2B/B2C invoices**
+    
+    - QR code generation mandatory
+    - XML format for submission to ZATCA
+    - 15-digit VAT number format
+    - Arabic and English language support
+    - Specific date/time format requirements
+  </Tab>
+  
+  <Tab title="Simplified Invoice">
+    **B2C transactions under 1000 SAR**
+    
+    - Reduced information requirements
+    - `sa_isNominal: true` flag required
+    - May omit detailed buyer information
+    - Still requires QR code and XML format
+  </Tab>
+  
+  <Tab title="Credit/Debit Notes">
+    **Adjustment documents**
+    
+    - Must reference original invoice
+    - Same format requirements as invoices
+    - Negative amounts for credit notes
+    - Proper reason codes required
+  </Tab>
+</Tabs>
+
+### Malaysia (MyInvois)
+
+<Tabs>
+  <Tab title="Invoice">
+    **Standard commercial invoice**
+    
+    - JSON format for submission
+    - Malaysian Tax ID format
+    - Ringgit (MYR) currency
+    - Standard and zero-rated tax categories
+  </Tab>
+  
+  <Tab title="Credit Note">
+    **Refund and adjustment note**
+    
+    - Reference to original invoice mandatory
+    - Negative line amounts
+    - Proper reason classification
+  </Tab>
+  
+  <Tab title="Debit Note">
+    **Additional charge note**
+    
+    - Supplementary to original invoice
+    - Positive amounts for additional charges
+    - Clear justification required
+  </Tab>
+</Tabs>
+
+## Document Type Configuration
+
+### API Configuration
+
+<CodeGroup>
+
+```bash Tax Invoice
+curl -X PUT 'https://api.complyance.io/modes-manager/integration/{integrationId}/progress' \
+  -H 'Authorization: Bearer YOUR_JWT_TOKEN' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "body": {
+      "step": "documentType",
+      "data": { "documentType": "tax_invoice" }
+    }
+  }'
+```
+
+```bash Credit Note  
+curl -X PUT 'https://api.complyance.io/modes-manager/integration/{integrationId}/progress' \
+  -H 'Authorization: Bearer YOUR_JWT_TOKEN' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "body": {
+      "step": "documentType", 
+      "data": { "documentType": "credit_note" }
+    }
+  }'
+```
+
+```bash Debit Note
+curl -X PUT 'https://api.complyance.io/modes-manager/integration/{integrationId}/progress' \
+  -H 'Authorization: Bearer YOUR_JWT_TOKEN' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "body": {
+      "step": "documentType",
+      "data": { "documentType": "debit_note" }
+    }
+  }'
+```
+
+</CodeGroup>
+
+### Java SDK Configuration
+
+```java
+// Tax Invoice
+UnifyResponse response = GETSUnifySDK.pushToUnify(
+    "erp-001",
+    DocumentType.TAX_INVOICE,
+    "SA",
+    Operation.SINGLE,
+    Mode.DOCUMENTS,
+    Purpose.MAPPING,
+    payload
+);
+
+// Credit Note
+UnifyResponse response = GETSUnifySDK.pushToUnify(
+    "erp-001", 
+    DocumentType.CREDIT_NOTE,
+    "SA",
+    Operation.SINGLE,
+    Mode.DOCUMENTS,
+    Purpose.MAPPING,
+    payload
+);
+
+// Debit Note
+UnifyResponse response = GETSUnifySDK.pushToUnify(
+    "erp-001",
+    DocumentType.DEBIT_NOTE,
+    "SA", 
+    Operation.SINGLE,
+    Mode.DOCUMENTS,
+    Purpose.MAPPING,
+    payload
+);
+```
+
+## Validation Rules
+
+### Common Validation
+
+<AccordionGroup>
+  <Accordion title="Field Completeness">
+    **All document types require**:
+    - Valid document ID
+    - Issue date and time
+    - Seller identification and tax registration
+    - At least one line item with price and tax
+    - Proper monetary totals calculation
+  </Accordion>
+  
+  <Accordion title="Tax Calculation">
+    **Tax amounts must be accurate**:
+    - Line item tax = quantity × unit price × tax rate
+    - Total tax = sum of all line item taxes
+    - Final amount = subtotal + total tax - discounts + charges
+  </Accordion>
+  
+  <Accordion title="Reference Integrity">
+    **Credit and debit notes**:
+    - Must reference valid original invoice
+    - Referenced invoice must exist in system
+    - Adjustment amounts must be reasonable
+    - Proper reason codes required
+  </Accordion>
+</AccordionGroup>
+
+### Country-Specific Validation
+
+<Tabs>
+  <Tab title="Saudi Arabia">
+    **ZATCA validation rules**:
+    - VAT numbers must be 15 digits
+    - QR code generation and validation
+    - XML schema compliance (UBL 2.1)
+    - Arabic language support where required
+    - Proper tax category codes (S, Z, E, O)
+  </Tab>
+  
+  <Tab title="Malaysia">
+    **MyInvois validation rules**:
+    - Malaysian tax ID format validation
+    - Currency must be MYR for domestic transactions
+    - Proper tax type classification
+    - JSON format compliance
+    - Mandatory field presence validation
+  </Tab>
+</Tabs>
+
+## Best Practices
+
+### Document Type Selection
+
+<CardGroup cols={2}>
+  <Card title="Use Tax Invoice For" icon="file-invoice">
+    - Standard commercial sales
+    - Service billing
+    - Subscription charges
+    - Initial transactions
+  </Card>
+  <Card title="Use Credit Note For" icon="file-minus">
+    - Product returns
+    - Service cancellations
+    - Invoice corrections (downward)
+    - Customer refunds
+  </Card>
+  <Card title="Use Debit Note For" icon="file-plus">
+    - Additional services
+    - Late payment fees
+    - Invoice corrections (upward)
+    - Supplementary charges
+  </Card>
+  <Card title="Avoid For" icon="x">
+    - Mixed document types in single transaction
+    - Incomplete or draft documents
+    - Non-commercial transactions
+    - Internal accounting entries
+  </Card>
+</CardGroup>
+
+### Integration Strategies
+
+<Tabs>
+  <Tab title="Single Document Type">
+    **When to use**: Simple business model with one transaction type
+    
+    ```javascript
+    // Create integration for tax invoices only
+    const integration = await createIntegration({
+      country: 'SA',
+      documentType: 'tax_invoice',
+      template: 'standard-invoice'
+    });
+    ```
+  </Tab>
+  
+  <Tab title="Multiple Document Types">
+    **When to use**: Complex business requiring different document types
+    
+    ```javascript
+    // Create separate integrations for each document type
+    const invoiceIntegration = await createIntegration({
+      country: 'SA',
+      documentType: 'tax_invoice'
+    });
+    
+    const creditIntegration = await createIntegration({
+      country: 'SA',
+      documentType: 'credit_note'  
+    });
+    ```
+  </Tab>
+  
+  <Tab title="Multi-Country">
+    **When to use**: Global operations with different compliance needs
+    
+    ```javascript
+    // Create country-specific integrations
+    const saudiIntegration = await createIntegration({
+      country: 'SA',
+      documentTypes: ['tax_invoice', 'credit_note']
+    });
+    
+    const malaysiaIntegration = await createIntegration({
+      country: 'MY',
+      documentTypes: ['tax_invoice', 'credit_note']
+    });
+    ```
+  </Tab>
+</Tabs>
+
+## Getting Started
+
+<CardGroup cols={2}>
+  <Card
+    title="Quick Start Guide"
+    icon="rocket"
+    href="/quickstart"
+  >
+    Set up your first document type integration
+  </Card>
+  <Card
+    title="Integration Concepts"
+    icon="puzzle-piece"
+    href="/concepts/integrations"
+  >
+    Learn about the complete integration process
+  </Card>
+  <Card
+    title="Field Mapping"
+    icon="brain"
+    href="/concepts/field-mapping" 
+  >
+    Understand how fields are mapped for different document types
+  </Card>
+  <Card
+    title="API Reference"
+    icon="book"
+    href="/api-reference/integrations/create"
+  >
+    Technical documentation for document type configuration
+  </Card>
+</CardGroup> 
